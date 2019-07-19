@@ -22,13 +22,14 @@ namespace Microsoft.PSharp.TestingServices.Tests.LogMessages
         [Fact(Timeout=5000)]
         public void TestCustomLogWriter()
         {
+            Action<IMachineRuntime> test = r =>
+            {
+                r.SetLogWriter(new CustomLogWriter());
+                r.CreateMachine(typeof(M));
+            };
+
             Configuration configuration = GetConfiguration().WithStrategy(SchedulingStrategy.DFS);
-            BugFindingEngine engine = BugFindingEngine.Create(configuration,
-                r =>
-                {
-                    r.SetLogWriter(new CustomLogWriter());
-                    r.CreateMachine(typeof(M));
-                });
+            BugFindingEngine engine = BugFindingEngine.Create(configuration, test);
 
             try
             {

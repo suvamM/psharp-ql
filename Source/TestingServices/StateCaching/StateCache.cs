@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using Microsoft.PSharp.IO;
 using Microsoft.PSharp.TestingServices.Runtime;
 using Microsoft.PSharp.TestingServices.Tracing.Schedule;
+using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.TestingServices.StateCaching
 {
@@ -24,7 +25,7 @@ namespace Microsoft.PSharp.TestingServices.StateCaching
         /// <summary>
         /// Set of fingerprints.
         /// </summary>
-        private readonly HashSet<Fingerprint> Fingerprints;
+        private readonly HashSet<int> Fingerprints;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="StateCache"/> class.
@@ -32,16 +33,16 @@ namespace Microsoft.PSharp.TestingServices.StateCaching
         internal StateCache(SystematicTestingRuntime runtime)
         {
             this.Runtime = runtime;
-            this.Fingerprints = new HashSet<Fingerprint>();
+            this.Fingerprints = new HashSet<int>();
         }
 
         /// <summary>
         /// Captures a snapshot of the program state.
         /// </summary>
-        internal bool CaptureState(out State state, out Fingerprint fingerprint, Dictionary<Fingerprint, List<int>> fingerprintIndexMap,
+        internal bool CaptureState(out State state, out int fingerprint, Dictionary<int, List<int>> fingerprintIndexMap,
             ScheduleStep scheduleStep, List<Monitor> monitors)
         {
-            fingerprint = this.Runtime.GetProgramState();
+            fingerprint = this.Runtime.GetHashedExecutionState(AbstractionLevel.Default);
             var enabledMachineIds = this.Runtime.Scheduler.GetEnabledSchedulableIds();
             state = new State(fingerprint, enabledMachineIds, GetMonitorStatus(monitors));
 

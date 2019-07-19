@@ -180,4 +180,10 @@ UpgradeLog*.htm
 
 # Microsoft Fakes
 FakesAssemblies/
+<<<<<<< HEAD
 Scripts/NuGet/nuget.exe
+=======
+
+#Benchmarks
+Benchmarks/out
+>>>>>>> 662888f7... improvements and fixes

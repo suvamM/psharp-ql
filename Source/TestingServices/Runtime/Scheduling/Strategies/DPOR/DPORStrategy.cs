@@ -78,9 +78,9 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
         }
 
         /// <summary>
-        /// Returns or forces the next choice to schedule.
+        /// Returns the next asynchronous operation to schedule.
         /// </summary>
-        private bool GetNextHelper(ref IAsyncOperation next, List<IAsyncOperation> ops, IAsyncOperation current)
+        public bool GetNext(IAsyncOperation current, List<IAsyncOperation> ops, out IAsyncOperation next)
         {
             int currentSchedulableId = (int)current.SourceId;
 
@@ -109,16 +109,8 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
                 }
             }
 
-            // Forced choice.
-            if (next != null)
-            {
-                this.AbdandonReplay(false);
-            }
-
             bool added = this.Stack.Push(ops);
             TaskEntryList top = this.Stack.GetTop();
-
-            Debug.Assert(next is null || added, "DPOR: Forced choice implies we should have added to stack.");
 
             if (added)
             {
@@ -148,13 +140,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
                 {
                     // TODO: Here is where we can combine with another scheduler:
                     // For now, we just do round-robin when doing DPOR and random when doing random DPOR.
-
-                    // If our choice is forced by parent scheduler:
-                    if (next != null)
-                    {
-                        top.AddToBacktrack((int)next.SourceId);
-                    }
-                    else if (this.Rand is null)
+                    if (this.Rand is null)
                     {
                         top.AddFirstEnabledNotSleptToBacktrack(currentSchedulableId);
                     }
@@ -204,135 +190,30 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
         }
 
         /// <summary>
-        /// Returns or forces the next boolean choice.
-        /// </summary>
-        private bool GetNextBooleanChoiceHelper(ref bool? next)
-        {
-            if (next != null)
-            {
-                this.AbdandonReplay(true);
-                return true;
-            }
-
-            next = this.Stack.GetTop().MakeOrReplayNondetChoice(true, this.Rand) == 1;
-            return true;
-        }
-
-        /// <summary>
-        /// Returns or forces the next integer choice.
-        /// </summary>
-        private bool GetNextIntegerChoiceHelper(ref int? next)
-        {
-            if (next != null)
-            {
-                this.AbdandonReplay(true);
-                return true;
-            }
-
-            next = this.Stack.GetTop().MakeOrReplayNondetChoice(false, this.Rand);
-            return true;
-        }
-
-        /// <summary>
-        /// Abandon the replay of a schedule prefix and/or a race suffice.
-        /// </summary>
-        private void AbdandonReplay(bool clearNonDet)
-        {
-            Debug.Assert(this.Rand != null, "DPOR: Forced choices are only supported with random DPOR.");
-
-            // Abandon remaining stack entries and race replay.
-            if (clearNonDet)
-            {
-                this.Stack.GetTop().ClearNondetChoicesFromNext();
-            }
-
-            this.Stack.ClearAboveTop();
-            this.Dpor.ReplayRaceIndex = int.MaxValue;
-        }
-
-        /// <summary>
-        /// Returns the next asynchronous operation to schedule.
-        /// </summary>
-        public bool GetNext(out IAsyncOperation next, List<IAsyncOperation> ops, IAsyncOperation current)
-        {
-            next = null;
-            return this.GetNextHelper(ref next, ops, current);
-        }
-
-        /// <summary>
         /// Returns the next boolean choice.
         /// </summary>
-        public bool GetNextBooleanChoice(int maxValue, out bool next)
+        public bool GetNextBooleanChoice(IAsyncOperation current, int maxValue, out bool next)
         {
-            bool? nextTemp = null;
-            this.GetNextBooleanChoiceHelper(ref nextTemp);
-            Debug.Assert(nextTemp != null, "nextTemp is null");
-            next = nextTemp.Value;
+            next = this.Stack.GetTop().MakeOrReplayNondetChoice(true, this.Rand) == 1;
             return true;
         }
 
         /// <summary>
         /// Returns the next integer choice.
         /// </summary>
-        public bool GetNextIntegerChoice(int maxValue, out int next)
+        public bool GetNextIntegerChoice(IAsyncOperation current, int maxValue, out int next)
         {
-            int? nextTemp = null;
-            this.GetNextIntegerChoiceHelper(ref nextTemp);
-            Debug.Assert(nextTemp != null, "nextTemp is null");
-            next = nextTemp.Value;
+            next = this.Stack.GetTop().MakeOrReplayNondetChoice(false, this.Rand);
             return true;
         }
 
         /// <summary>
-        /// Forces the next asynchronous operation to be scheduled.
+        /// Notifies the scheduling strategy that a bug was
+        /// found in the current iteration.
         /// </summary>
-        public void ForceNext(IAsyncOperation next, List<IAsyncOperation> ops, IAsyncOperation current)
+        public void NotifyBugFound()
         {
-            IAsyncOperation temp = next;
-            bool res = this.GetNextHelper(ref temp, ops, current);
-            Debug.Assert(res, "DPOR scheduler refused to schedule a forced choice.");
-            Debug.Assert(temp == next, "DPOR scheduler changed forced next choice.");
         }
-
-        /// <summary>
-        /// Forces the next boolean choice.
-        /// </summary>
-        public void ForceNextBooleanChoice(int maxValue, bool next)
-        {
-            bool? nextTemp = next;
-            bool res = this.GetNextBooleanChoiceHelper(ref nextTemp);
-            Debug.Assert(res, "DPOR scheduler refused to schedule a forced boolean choice.");
-            Debug.Assert(nextTemp.HasValue && nextTemp.Value == next,
-                "DPOR scheduler changed forced next boolean choice.");
-        }
-
-        /// <summary>
-        /// Forces the next integer choice.
-        /// </summary>
-        public void ForceNextIntegerChoice(int maxValue, int next)
-        {
-            int? nextTemp = next;
-            bool res = this.GetNextIntegerChoiceHelper(ref nextTemp);
-            Debug.Assert(res, "DPOR scheduler refused to schedule a forced integer choice.");
-            Debug.Assert(nextTemp.HasValue && nextTemp.Value == next,
-                "DPOR scheduler changed forced next integer choice.");
-        }
-
-        /// <summary>
-        /// Returns the explored steps.
-        /// </summary>
-        public int GetScheduledSteps() => this.Stack.GetNumSteps();
-
-        /// <summary>
-        /// True if the scheduling strategy has reached the max
-        /// scheduling steps for the given scheduling iteration.
-        /// </summary>
-        public bool HasReachedMaxSchedulingSteps() => this.StepLimit > 0 && this.Stack.GetNumSteps() >= this.StepLimit;
-
-        /// <summary>
-        /// Checks if this a fair scheduling strategy.
-        /// </summary>
-        public bool IsFair() => false;
 
         /// <summary>
         /// Prepares the next scheduling iteration.
@@ -355,6 +236,39 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
 
             return this.Rand != null || this.Stack.GetInternalSize() != 0;
         }
+
+        /// <summary>
+        /// Abandon the replay of a schedule prefix and/or a race suffice.
+        /// </summary>
+        private void AbdandonReplay(bool clearNonDet)
+        {
+            Debug.Assert(this.Rand != null, "DPOR: Forced choices are only supported with random DPOR.");
+
+            // Abandon remaining stack entries and race replay.
+            if (clearNonDet)
+            {
+                this.Stack.GetTop().ClearNondetChoicesFromNext();
+            }
+
+            this.Stack.ClearAboveTop();
+            this.Dpor.ReplayRaceIndex = int.MaxValue;
+        }
+
+        /// <summary>
+        /// Returns the explored steps.
+        /// </summary>
+        public int GetScheduledSteps() => this.Stack.GetNumSteps();
+
+        /// <summary>
+        /// True if the scheduling strategy has reached the max
+        /// scheduling steps for the given scheduling iteration.
+        /// </summary>
+        public bool HasReachedMaxSchedulingSteps() => this.StepLimit > 0 && this.Stack.GetNumSteps() >= this.StepLimit;
+
+        /// <summary>
+        /// Checks if this a fair scheduling strategy.
+        /// </summary>
+        public bool IsFair() => false;
 
         /// <summary>
         /// Resets the scheduling strategy.

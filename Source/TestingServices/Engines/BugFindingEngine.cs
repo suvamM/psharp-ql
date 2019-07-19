@@ -71,6 +71,49 @@ namespace Microsoft.PSharp.TestingServices
         }
 
         /// <summary>
+        /// Tries to emit the testing traces, if any.
+        /// </summary>
+        public override void TryEmitTraces(string directory, string file)
+        {
+            // Emits the human readable trace, if it exists.
+            if (!string.IsNullOrEmpty(this.ReadableTrace))
+            {
+                string[] readableTraces = Directory.GetFiles(directory, file + "_*.txt").
+                    Where(path => new Regex(@"^.*_[0-9]+.txt$").IsMatch(path)).ToArray();
+                string readableTracePath = directory + file + "_" + readableTraces.Length + ".txt";
+
+                this.Logger.WriteLine($"..... Writing {readableTracePath}");
+                File.WriteAllText(readableTracePath, this.ReadableTrace);
+            }
+
+            // Emits the bug trace, if it exists.
+            if (this.BugTrace != null)
+            {
+                string[] bugTraces = Directory.GetFiles(directory, file + "_*.pstrace");
+                string bugTracePath = directory + file + "_" + bugTraces.Length + ".pstrace";
+
+                using (FileStream stream = File.Open(bugTracePath, FileMode.Create))
+                {
+                    DataContractSerializer serializer = new DataContractSerializer(typeof(BugTrace));
+                    this.Logger.WriteLine($"..... Writing {bugTracePath}");
+                    serializer.WriteObject(stream, this.BugTrace);
+                }
+            }
+
+            // Emits the reproducable trace, if it exists.
+            if (!string.IsNullOrEmpty(this.ReproducableTrace))
+            {
+                string[] reproTraces = Directory.GetFiles(directory, file + "_*.schedule");
+                string reproTracePath = directory + file + "_" + reproTraces.Length + ".schedule";
+
+                this.Logger.WriteLine($"..... Writing {reproTracePath}");
+                File.WriteAllText(reproTracePath, this.ReproducableTrace);
+            }
+
+            this.Logger.WriteLine($"... Elapsed {this.Profiler.Results()} sec.");
+        }
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="BugFindingEngine"/> class.
         /// </summary>
         private BugFindingEngine(Configuration configuration)
@@ -133,13 +176,9 @@ namespace Microsoft.PSharp.TestingServices
         protected override Task CreateTestingTask()
         {
             string options = string.Empty;
-            if (this.Configuration.SchedulingStrategy == SchedulingStrategy.Random ||
-                this.Configuration.SchedulingStrategy == SchedulingStrategy.ProbabilisticRandom ||
-                this.Configuration.SchedulingStrategy == SchedulingStrategy.PCT ||
-                this.Configuration.SchedulingStrategy == SchedulingStrategy.FairPCT ||
-                this.Configuration.SchedulingStrategy == SchedulingStrategy.RandomDelayBounding)
+            if (this.IsStrategyUsingRandomNumberGenerator())
             {
-                options = $" (seed:{this.Configuration.RandomSchedulingSeed})";
+                options = $" (seed:{this.Configuration.SchedulingSeed})";
             }
 
             this.Logger.WriteLine($"... Task {this.Configuration.TestingProcessId} is " +
@@ -166,7 +205,8 @@ namespace Microsoft.PSharp.TestingServices
                         // Runs a new testing iteration.
                         this.RunNextIteration(i);
 
-                        if (!this.Configuration.PerformFullExploration && this.TestReport.NumOfFoundBugs > 0)
+                        if (!this.Configuration.PerformFullExploration &&
+                            this.TestReport.NumOfFoundBugs > 0)
                         {
                             break;
                         }
@@ -176,11 +216,10 @@ namespace Microsoft.PSharp.TestingServices
                             break;
                         }
 
-                        if (this.RandomNumberGenerator != null && this.Configuration.IncrementalSchedulingSeed)
+                        if (this.RandomNumberGenerator != null && !this.Configuration.SchedulingSeed.HasValue)
                         {
-                            // Increments the seed in the random number generator (if one is used), to
-                            // capture the seed used by the scheduling strategy in the next iteration.
-                            this.RandomNumberGenerator.Seed += 1;
+                            // Randomizes the seed in the random number generator.
+                            this.RandomNumberGenerator.Seed = DateTime.Now.Millisecond;
                         }
 
                         // Increases iterations if there is a specified timeout
@@ -318,6 +357,7 @@ namespace Microsoft.PSharp.TestingServices
 
                 if (runtime.Scheduler.BugFound)
                 {
+                    this.Strategy.NotifyBugFound();
                     this.ErrorReporter.WriteErrorLine(runtime.Scheduler.BugReport);
                 }
 
@@ -344,11 +384,16 @@ namespace Microsoft.PSharp.TestingServices
                     Console.SetError(stdErr);
                 }
 
-                if (this.Configuration.PerformFullExploration && runtime.Scheduler.BugFound)
+                if (runtime.Scheduler.BugFound)
                 {
-                    this.Logger.WriteLine($"..... Iteration #{iteration + 1} " +
-                        $"triggered bug #{this.TestReport.NumOfFoundBugs} " +
-                        $"[task-{this.Configuration.TestingProcessId}]");
+                    string notification = $"....... Bug found in iteration #{iteration + 1}";
+                    if (this.IsStrategyUsingRandomNumberGenerator())
+                    {
+                        notification += $" using random seed '{this.RandomNumberGenerator.Seed}'";
+                    }
+
+                    notification += $" [task-{this.Configuration.TestingProcessId}]";
+                    this.Logger.WriteLine(notification);
                 }
 
                 // Cleans up the runtime before the next iteration starts.
@@ -363,49 +408,6 @@ namespace Microsoft.PSharp.TestingServices
         public override string GetReport()
         {
             return this.TestReport.GetText(this.Configuration, "...");
-        }
-
-        /// <summary>
-        /// Tries to emit the testing traces, if any.
-        /// </summary>
-        public override void TryEmitTraces(string directory, string file)
-        {
-            // Emits the human readable trace, if it exists.
-            if (!string.IsNullOrEmpty(this.ReadableTrace))
-            {
-                string[] readableTraces = Directory.GetFiles(directory, file + "_*.txt").
-                    Where(path => new Regex(@"^.*_[0-9]+.txt$").IsMatch(path)).ToArray();
-                string readableTracePath = directory + file + "_" + readableTraces.Length + ".txt";
-
-                this.Logger.WriteLine($"..... Writing {readableTracePath}");
-                File.WriteAllText(readableTracePath, this.ReadableTrace);
-            }
-
-            // Emits the bug trace, if it exists.
-            if (this.BugTrace != null)
-            {
-                string[] bugTraces = Directory.GetFiles(directory, file + "_*.pstrace");
-                string bugTracePath = directory + file + "_" + bugTraces.Length + ".pstrace";
-
-                using (FileStream stream = File.Open(bugTracePath, FileMode.Create))
-                {
-                    DataContractSerializer serializer = new DataContractSerializer(typeof(BugTrace));
-                    this.Logger.WriteLine($"..... Writing {bugTracePath}");
-                    serializer.WriteObject(stream, this.BugTrace);
-                }
-            }
-
-            // Emits the reproducable trace, if it exists.
-            if (!string.IsNullOrEmpty(this.ReproducableTrace))
-            {
-                string[] reproTraces = Directory.GetFiles(directory, file + "_*.schedule");
-                string reproTracePath = directory + file + "_" + reproTraces.Length + ".schedule";
-
-                this.Logger.WriteLine($"..... Writing {reproTracePath}");
-                File.WriteAllText(reproTracePath, this.ReproducableTrace);
-            }
-
-            this.Logger.WriteLine($"... Elapsed {this.Profiler.Results()} sec.");
         }
 
         /// <summary>

@@ -222,7 +222,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             configuration.MaxUnfairSchedulingSteps = 100;
             configuration.MaxFairSchedulingSteps = 1000;
             configuration.LivenessTemperatureThreshold = 500;
-            configuration.RandomSchedulingSeed = seed;
+            configuration.SchedulingSeed = seed;
             configuration.SchedulingIterations = 1;
 
             this.TestWithError(r =>

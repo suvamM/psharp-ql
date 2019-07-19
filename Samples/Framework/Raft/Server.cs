@@ -245,10 +245,10 @@ namespace Raft
             this.Servers = (this.ReceivedEvent as ConfigureEvent).Servers;
             this.ClusterManager = (this.ReceivedEvent as ConfigureEvent).ClusterManager;
 
-            this.ElectionTimer = this.CreateMachine(typeof(ElectionTimer));
+            this.ElectionTimer = this.CreateMachine(typeof(ElectionTimer), $"ElectionTimer{this.ServerId}");
             this.Send(this.ElectionTimer, new ElectionTimer.ConfigureEvent(this.Id));
 
-            this.PeriodicTimer = this.CreateMachine(typeof(PeriodicTimer));
+            this.PeriodicTimer = this.CreateMachine(typeof(PeriodicTimer), $"PeriodicTimer{this.ServerId}");
             this.Send(this.PeriodicTimer, new PeriodicTimer.ConfigureEvent(this.Id));
 
             this.Raise(new BecomeFollower());

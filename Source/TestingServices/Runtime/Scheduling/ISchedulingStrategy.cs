@@ -8,56 +8,42 @@ using System.Collections.Generic;
 namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
 {
     /// <summary>
-    /// Interface of a machine scheduling strategy.
+    /// Interface of an asynchronous operation scheduling strategy.
     /// </summary>
     public interface ISchedulingStrategy
     {
         /// <summary>
-        /// Forces the next asynchronous operation to be scheduled.
+        /// Returns the next asynchronous operation to schedule.
         /// </summary>
-        /// <param name="next">The next operation to schedule.</param>
-        /// <param name="ops">List of operations that can be scheduled.</param>
         /// <param name="current">The currently scheduled operation.</param>
+        /// <param name="ops">List of operations that can be scheduled.</param>
+        /// <param name="next">The next operation to schedule.</param>
         /// <returns>True if there is a next choice, else false.</returns>
-        bool GetNext(out IAsyncOperation next, List<IAsyncOperation> ops, IAsyncOperation current);
+        bool GetNext(IAsyncOperation current, List<IAsyncOperation> ops, out IAsyncOperation next);
 
         /// <summary>
         /// Returns the next boolean choice.
         /// </summary>
+        /// <param name="current">The currently scheduled operation.</param>
         /// <param name="maxValue">The max value.</param>
         /// <param name="next">The next boolean choice.</param>
         /// <returns>True if there is a next choice, else false.</returns>
-        bool GetNextBooleanChoice(int maxValue, out bool next);
+        bool GetNextBooleanChoice(IAsyncOperation current, int maxValue, out bool next);
 
         /// <summary>
         /// Returns the next integer choice.
         /// </summary>
+        /// <param name="current">The currently scheduled operation.</param>
         /// <param name="maxValue">The max value.</param>
         /// <param name="next">The next integer choice.</param>
         /// <returns>True if there is a next choice, else false.</returns>
-        bool GetNextIntegerChoice(int maxValue, out int next);
+        bool GetNextIntegerChoice(IAsyncOperation current, int maxValue, out int next);
 
         /// <summary>
-        /// Forces the next asynchronous operation to be scheduled.
+        /// Notifies the scheduling strategy that a bug was
+        /// found in the current iteration.
         /// </summary>
-        /// <param name="next">The next operation to schedule.</param>
-        /// <param name="ops">List of operations that can be scheduled.</param>
-        /// <param name="current">The currently scheduled operation.</param>
-        void ForceNext(IAsyncOperation next, List<IAsyncOperation> ops, IAsyncOperation current);
-
-        /// <summary>
-        /// Forces the next boolean choice.
-        /// </summary>
-        /// <param name="maxValue">The max value.</param>
-        /// <param name="next">The next boolean choice.</param>
-        void ForceNextBooleanChoice(int maxValue, bool next);
-
-        /// <summary>
-        /// Forces the next integer choice.
-        /// </summary>
-        /// <param name="maxValue">The max value.</param>
-        /// <param name="next">The next integer choice.</param>
-        void ForceNextIntegerChoice(int maxValue, int next);
+        void NotifyBugFound();
 
         /// <summary>
         /// Prepares for the next scheduling iteration. This is invoked

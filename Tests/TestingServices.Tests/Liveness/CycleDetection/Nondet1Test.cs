@@ -112,7 +112,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             var configuration = GetConfiguration();
             configuration.EnableCycleDetection = true;
             configuration.SchedulingStrategy = SchedulingStrategy.DFS;
-            configuration.RandomSchedulingSeed = 96;
+            configuration.SchedulingSeed = 96;
 
             this.TestWithError(r =>
             {

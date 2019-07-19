@@ -39,8 +39,8 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
         /// </summary>
         public override bool PrepareForNextIteration()
         {
-            bool doNext = this.PrepareForNextIteration();
-            if (!doNext)
+            bool doNext = true;
+            while (!doNext)
             {
                 this.Reset();
                 this.CurrentDepth++;

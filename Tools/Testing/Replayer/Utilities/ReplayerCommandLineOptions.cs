@@ -57,10 +57,6 @@ namespace Microsoft.PSharp.Utilities
             {
                 this.Configuration.EnableCycleDetection = true;
             }
-            else if (IsMatch(option, @"^[\/|-]custom-state-hashing$"))
-            {
-                this.Configuration.EnableUserDefinedStateHashing = true;
-            }
             else
             {
                 base.ParseOption(option);

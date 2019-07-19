@@ -40,7 +40,7 @@ namespace Raft
         public static void Execute(IMachineRuntime runtime)
         {
             runtime.RegisterMonitor(typeof(SafetyMonitor));
-            runtime.CreateMachine(typeof(ClusterManager));
+            runtime.CreateMachine(typeof(ClusterManager), "ClusterManager");
         }
     }
 }

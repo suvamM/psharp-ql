@@ -44,6 +44,18 @@ namespace Microsoft.PSharp.Utilities
         ProbabilisticRandom,
 
         /// <summary>
+        /// Greedy random-walk scheduling.
+        /// </summary>
+        [EnumMember(Value = "GreedyRandom")]
+        GreedyRandom,
+
+        /// <summary>
+        /// Greedy random-walk scheduling.
+        /// </summary>
+        [EnumMember(Value = "FairGreedyRandom")]
+        FairGreedyRandom,
+
+        /// <summary>
         /// Prioritized scheduling.
         /// </summary>
         [EnumMember(Value = "PCT")]
@@ -87,9 +99,45 @@ namespace Microsoft.PSharp.Utilities
         DelayBounding,
 
         /// <summary>
-        /// Random delay-bounding scheduling.
+        /// Delay-bounding scheduling.
         /// </summary>
-        [EnumMember(Value = "RandomDelayBounding")]
-        RandomDelayBounding
+        [EnumMember(Value = "IterativeDelayBounding")]
+        IterativeDelayBounding,
+
+        /// <summary>
+        /// Delay-bounding scheduling.
+        /// </summary>
+        [EnumMember(Value = "FairDelayBounding")]
+        FairDelayBounding,
+
+        /// <summary>
+        /// Delay-bounding scheduling.
+        /// </summary>
+        [EnumMember(Value = "FairIterativeDelayBounding")]
+        FairIterativeDelayBounding,
+
+        /// <summary>
+        /// Q learning scheduling.
+        /// </summary>
+        [EnumMember(Value = "QLearning")]
+        QLearning,
+
+        /// <summary>
+        /// Fair Q learning scheduling.
+        /// </summary>
+        [EnumMember(Value = "FairQLearning")]
+        FairQLearning,
+
+        /// <summary>
+        /// Q learning scheduling focused on context-switches.
+        /// </summary>
+        [EnumMember(Value = "NoRandomQLearning")]
+        NoRandomQLearning,
+
+        /// <summary>
+        /// Q learning scheduling focused on context-switches.
+        /// </summary>
+        [EnumMember(Value = "FairNoRandomQLearning")]
+        FairNoRandomQLearning
     }
 }

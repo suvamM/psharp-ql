@@ -85,7 +85,7 @@ namespace Raft
 
         void PumpRequestOnEntry()
         {
-            this.LatestCommand = this.RandomInteger(100); //new Random().Next(100);
+            this.LatestCommand = this.RandomInteger(5); //new Random().Next(100);
             this.Counter++;
 
             this.Logger.WriteLine("\n [Client] new request " + this.LatestCommand + "\n");
@@ -95,7 +95,7 @@ namespace Raft
 
         void ProcessResponse()
         {
-            if (this.Counter == 3)
+            if (this.Counter == 1)
             {
                 this.Send(this.Cluster, new ClusterManager.ShutDown());
                 this.Raise(new Halt());

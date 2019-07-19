@@ -89,6 +89,30 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         public ulong MatchingSendIndex { get; internal set; }
 
         /// <summary>
+        /// Hash that represents the execution state under the default
+        /// abstraction when this operation last executed.
+        /// </summary>
+        public int DefaultHashedState { get; internal set; }
+
+        /// <summary>
+        /// Hash that represents the execution state under the inbox-only
+        /// abstraction when this operation last executed.
+        /// </summary>
+        public int InboxOnlyHashedState { get; internal set; }
+
+        /// <summary>
+        /// Hash that represents the execution state under the custom
+        /// abstraction when this operation last executed.
+        /// </summary>
+        public int CustomHashedState { get; internal set; }
+
+        /// <summary>
+        /// Hash that represents the execution state under the full
+        /// abstraction when this operation last executed.
+        /// </summary>
+        public int FullHashedState { get; internal set; }
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="MachineOperation"/> class.
         /// </summary>
         internal MachineOperation(AsyncMachine machine)

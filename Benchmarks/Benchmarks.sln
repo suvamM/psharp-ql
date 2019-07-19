@@ -1,0 +1,84 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.28803.156
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Source", "Source", "{83369B7E-5C21-4D49-A14C-E8A6A4892807}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EvaluationDriver", "EvaluationDriver\EvaluationDriver.csproj", "{6040251F-1067-463B-B3CB-3B1048963098}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Benchmarks.Protocols", "Protocols\Benchmarks.Protocols.csproj", "{45F555B6-1031-4C9F-A821-0EE778E54331}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Benchmarks.Threading", "Threading\Benchmarks.Threading.csproj", "{0131D703-86E9-479D-A1DA-F231898031DE}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Experiments", "Experiments", "{5A7D6FB6-7CD6-45DF-BD07-000E4D85EA30}"
+	ProjectSection(SolutionItems) = preProject
+		Experiments\Chord.custom.test.json = Experiments\Chord.custom.test.json
+		Experiments\Chord.default.test.json = Experiments\Chord.default.test.json
+		Experiments\Chord.full.test.json = Experiments\Chord.full.test.json
+		Experiments\Chord.inboxonly.test.json = Experiments\Chord.inboxonly.test.json
+		Experiments\FailureDetector.custom.test.json = Experiments\FailureDetector.custom.test.json
+		Experiments\FailureDetector.default.test.json = Experiments\FailureDetector.default.test.json
+		Experiments\FailureDetector.full.test.json = Experiments\FailureDetector.full.test.json
+		Experiments\FailureDetector.inboxonly.test.json = Experiments\FailureDetector.inboxonly.test.json
+		Experiments\FibBench2.custom.test.json = Experiments\FibBench2.custom.test.json
+		Experiments\FibBench2.default.test.json = Experiments\FibBench2.default.test.json
+		Experiments\FibBench2.full.test.json = Experiments\FibBench2.full.test.json
+		Experiments\FibBenchLongest2.custom.test.json = Experiments\FibBenchLongest2.custom.test.json
+		Experiments\FibBenchLongest2.default.test.json = Experiments\FibBenchLongest2.default.test.json
+		Experiments\FibBenchLongest2.full.test.json = Experiments\FibBenchLongest2.full.test.json
+		Experiments\Paxos.custom.test.json = Experiments\Paxos.custom.test.json
+		Experiments\Paxos.default.test.json = Experiments\Paxos.default.test.json
+		Experiments\Paxos.full.test.json = Experiments\Paxos.full.test.json
+		Experiments\Paxos.inboxonly.test.json = Experiments\Paxos.inboxonly.test.json
+		Experiments\Raftv1.custom.test.json = Experiments\Raftv1.custom.test.json
+		Experiments\Raftv1.default.test.json = Experiments\Raftv1.default.test.json
+		Experiments\Raftv1.full.test.json = Experiments\Raftv1.full.test.json
+		Experiments\Raftv1.inboxonly.test.json = Experiments\Raftv1.inboxonly.test.json
+		Experiments\Raftv2.custom.test.json = Experiments\Raftv2.custom.test.json
+		Experiments\Raftv2.default.test.json = Experiments\Raftv2.default.test.json
+		Experiments\Raftv2.full.test.json = Experiments\Raftv2.full.test.json
+		Experiments\Raftv2.inboxonly.test.json = Experiments\Raftv2.inboxonly.test.json
+		Experiments\Safestack.custom.test.json = Experiments\Safestack.custom.test.json
+		Experiments\Safestack.default.test.json = Experiments\Safestack.default.test.json
+		Experiments\Safestack.full.test.json = Experiments\Safestack.full.test.json
+		Experiments\Triangular2.custom.test.json = Experiments\Triangular2.custom.test.json
+		Experiments\Triangular2.default.test.json = Experiments\Triangular2.default.test.json
+		Experiments\Triangular2.full.test.json = Experiments\Triangular2.full.test.json
+		Experiments\TriangularLongest2.custom.test.json = Experiments\TriangularLongest2.custom.test.json
+		Experiments\TriangularLongest2.default.test.json = Experiments\TriangularLongest2.default.test.json
+		Experiments\TriangularLongest2.full.test.json = Experiments\TriangularLongest2.full.test.json
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{6040251F-1067-463B-B3CB-3B1048963098}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6040251F-1067-463B-B3CB-3B1048963098}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6040251F-1067-463B-B3CB-3B1048963098}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6040251F-1067-463B-B3CB-3B1048963098}.Release|Any CPU.Build.0 = Release|Any CPU
+		{45F555B6-1031-4C9F-A821-0EE778E54331}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{45F555B6-1031-4C9F-A821-0EE778E54331}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{45F555B6-1031-4C9F-A821-0EE778E54331}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{45F555B6-1031-4C9F-A821-0EE778E54331}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0131D703-86E9-479D-A1DA-F231898031DE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0131D703-86E9-479D-A1DA-F231898031DE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0131D703-86E9-479D-A1DA-F231898031DE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0131D703-86E9-479D-A1DA-F231898031DE}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{6040251F-1067-463B-B3CB-3B1048963098} = {83369B7E-5C21-4D49-A14C-E8A6A4892807}
+		{45F555B6-1031-4C9F-A821-0EE778E54331} = {83369B7E-5C21-4D49-A14C-E8A6A4892807}
+		{0131D703-86E9-479D-A1DA-F231898031DE} = {83369B7E-5C21-4D49-A14C-E8A6A4892807}
+		{5A7D6FB6-7CD6-45DF-BD07-000E4D85EA30} = {83369B7E-5C21-4D49-A14C-E8A6A4892807}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {B9407046-CB24-4B07-8031-2749696EC7D8}
+	EndGlobalSection
+EndGlobal

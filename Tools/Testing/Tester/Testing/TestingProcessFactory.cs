@@ -85,9 +85,9 @@ namespace Microsoft.PSharp.TestingServices
                 arguments.Append($"/sch:{configuration.SchedulingStrategy} ");
             }
 
-            if (configuration.RandomSchedulingSeed != null)
+            if (configuration.SchedulingSeed != null)
             {
-                arguments.Append($"/sch-seed:{configuration.RandomSchedulingSeed} ");
+                arguments.Append($"/sch-seed:{configuration.SchedulingSeed} ");
             }
 
             if (configuration.PerformFullExploration)

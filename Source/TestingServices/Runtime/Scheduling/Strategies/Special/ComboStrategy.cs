@@ -35,91 +35,54 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
         /// <summary>
         /// Returns the next asynchronous operation to schedule.
         /// </summary>
-        public bool GetNext(out IAsyncOperation next, List<IAsyncOperation> ops, IAsyncOperation current)
+        public bool GetNext(IAsyncOperation current, List<IAsyncOperation> ops, out IAsyncOperation next)
         {
             if (this.PrefixStrategy.HasReachedMaxSchedulingSteps())
             {
-                return this.SuffixStrategy.GetNext(out next, ops, current);
+                return this.SuffixStrategy.GetNext(current, ops, out next);
             }
             else
             {
-                return this.PrefixStrategy.GetNext(out next, ops, current);
+                return this.PrefixStrategy.GetNext(current, ops, out next);
             }
         }
 
         /// <summary>
         /// Returns the next boolean choice.
         /// </summary>
-        public bool GetNextBooleanChoice(int maxValue, out bool next)
+        public bool GetNextBooleanChoice(IAsyncOperation current, int maxValue, out bool next)
         {
             if (this.PrefixStrategy.HasReachedMaxSchedulingSteps())
             {
-                return this.SuffixStrategy.GetNextBooleanChoice(maxValue, out next);
+                return this.SuffixStrategy.GetNextBooleanChoice(current, maxValue, out next);
             }
             else
             {
-                return this.PrefixStrategy.GetNextBooleanChoice(maxValue, out next);
+                return this.PrefixStrategy.GetNextBooleanChoice(current, maxValue, out next);
             }
         }
 
         /// <summary>
         /// Returns the next integer choice.
         /// </summary>
-        public bool GetNextIntegerChoice(int maxValue, out int next)
+        public bool GetNextIntegerChoice(IAsyncOperation current, int maxValue, out int next)
         {
             if (this.PrefixStrategy.HasReachedMaxSchedulingSteps())
             {
-                return this.SuffixStrategy.GetNextIntegerChoice(maxValue, out next);
+                return this.SuffixStrategy.GetNextIntegerChoice(current, maxValue, out next);
             }
             else
             {
-                return this.PrefixStrategy.GetNextIntegerChoice(maxValue, out next);
+                return this.PrefixStrategy.GetNextIntegerChoice(current, maxValue, out next);
             }
         }
 
         /// <summary>
-        /// Forces the next asynchronous operation to be scheduled.
+        /// Notifies the scheduling strategy that a bug was
+        /// found in the current iteration.
         /// </summary>
-        public void ForceNext(IAsyncOperation next, List<IAsyncOperation> ops, IAsyncOperation current)
+        public void NotifyBugFound()
         {
-            if (this.PrefixStrategy.HasReachedMaxSchedulingSteps())
-            {
-                this.SuffixStrategy.ForceNext(next, ops, current);
-            }
-            else
-            {
-                this.PrefixStrategy.ForceNext(next, ops, current);
-            }
-        }
-
-        /// <summary>
-        /// Forces the next boolean choice.
-        /// </summary>
-        public void ForceNextBooleanChoice(int maxValue, bool next)
-        {
-            if (this.PrefixStrategy.HasReachedMaxSchedulingSteps())
-            {
-                this.SuffixStrategy.ForceNextBooleanChoice(maxValue, next);
-            }
-            else
-            {
-                this.PrefixStrategy.ForceNextBooleanChoice(maxValue, next);
-            }
-        }
-
-        /// <summary>
-        /// Forces the next integer choice.
-        /// </summary>
-        public void ForceNextIntegerChoice(int maxValue, int next)
-        {
-            if (this.PrefixStrategy.HasReachedMaxSchedulingSteps())
-            {
-                this.SuffixStrategy.ForceNextIntegerChoice(maxValue, next);
-            }
-            else
-            {
-                this.PrefixStrategy.ForceNextIntegerChoice(maxValue, next);
-            }
         }
 
         /// <summary>

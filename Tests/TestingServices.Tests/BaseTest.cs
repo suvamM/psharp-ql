@@ -46,7 +46,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             }
             else
             {
-                logger = new DisposingLogger();
+                logger = new NulLogger();
             }
 
             BugFindingEngine engine = null;
@@ -131,7 +131,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             }
             else
             {
-                logger = new DisposingLogger();
+                logger = new NulLogger();
             }
 
             try
@@ -204,7 +204,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             }
             else
             {
-                logger = new DisposingLogger();
+                logger = new NulLogger();
             }
 
             try

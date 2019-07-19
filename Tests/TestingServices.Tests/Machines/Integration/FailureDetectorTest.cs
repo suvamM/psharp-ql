@@ -527,9 +527,8 @@ namespace Microsoft.PSharp.TestingServices.Tests
             configuration.MaxUnfairSchedulingSteps = 200;
             configuration.MaxFairSchedulingSteps = 2000;
             configuration.LivenessTemperatureThreshold = 1000;
-            configuration.RandomSchedulingSeed = seed;
+            configuration.SchedulingSeed = seed;
             configuration.SchedulingIterations = 1;
-            configuration.ReductionStrategy = Utilities.ReductionStrategy.ForceSchedule;
 
             this.TestWithError(r =>
             {
@@ -550,9 +549,8 @@ namespace Microsoft.PSharp.TestingServices.Tests
             configuration.MaxUnfairSchedulingSteps = 200;
             configuration.MaxFairSchedulingSteps = 2000;
             configuration.LivenessTemperatureThreshold = 1000;
-            configuration.RandomSchedulingSeed = seed;
+            configuration.SchedulingSeed = seed;
             configuration.SchedulingIterations = 1;
-            configuration.ReductionStrategy = Utilities.ReductionStrategy.ForceSchedule;
 
             this.TestWithError(r =>
             {
@@ -572,7 +570,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             configuration.SchedulingStrategy = Utilities.SchedulingStrategy.FairPCT;
             configuration.PrioritySwitchBound = 1;
             configuration.MaxSchedulingSteps = 100;
-            configuration.RandomSchedulingSeed = 270;
+            configuration.SchedulingSeed = 270;
             configuration.SchedulingIterations = 1;
 
             this.TestWithError(r =>

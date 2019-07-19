@@ -102,7 +102,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
         {
             var configuration = GetConfiguration();
             configuration.EnableCycleDetection = true;
-            configuration.RandomSchedulingSeed = seed;
+            configuration.SchedulingSeed = seed;
             configuration.SchedulingIterations = 7;
             configuration.MaxSchedulingSteps = 200;
 
@@ -121,7 +121,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
         {
             var configuration = GetConfiguration();
             configuration.EnableCycleDetection = true;
-            configuration.RandomSchedulingSeed = seed;
+            configuration.SchedulingSeed = seed;
             configuration.SchedulingIterations = 10;
             configuration.MaxSchedulingSteps = 200;
 

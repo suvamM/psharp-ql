@@ -146,9 +146,9 @@ namespace Microsoft.PSharp.TestingServices
                 TestingPortfolio.ConfigureStrategyForCurrentProcess(configuration);
             }
 
-            if (configuration.RandomSchedulingSeed != null)
+            if (configuration.SchedulingSeed != null)
             {
-                configuration.RandomSchedulingSeed = (int)(configuration.RandomSchedulingSeed + (673 * configuration.TestingProcessId));
+                configuration.SchedulingSeed = (int)(configuration.SchedulingSeed + (673 * configuration.TestingProcessId));
             }
 
             configuration.EnableColoredConsoleOutput = true;

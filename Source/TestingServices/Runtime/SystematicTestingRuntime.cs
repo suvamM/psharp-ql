@@ -49,11 +49,6 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         private readonly ControlledTaskScheduler TaskScheduler;
 
         /// <summary>
-        /// The controlled synchronization context.
-        /// </summary>
-        // private readonly ControlledSynchronizationContext SyncContext;
-
-        /// <summary>
         /// The bug trace.
         /// </summary>
         internal BugTrace BugTrace;
@@ -116,21 +111,6 @@ namespace Microsoft.PSharp.TestingServices.Runtime
             this.StateCache = new StateCache(this);
             this.CoverageInfo = new CoverageInfo();
             this.Reporter = reporter;
-
-            if (!(strategy is DPORStrategy) && !(strategy is ReplayStrategy))
-            {
-                var reductionStrategy = BasicReductionStrategy.ReductionStrategy.None;
-                if (configuration.ReductionStrategy is ReductionStrategy.OmitSchedulingPoints)
-                {
-                    reductionStrategy = BasicReductionStrategy.ReductionStrategy.OmitSchedulingPoints;
-                }
-                else if (configuration.ReductionStrategy is ReductionStrategy.ForceSchedule)
-                {
-                    reductionStrategy = BasicReductionStrategy.ReductionStrategy.ForceSchedule;
-                }
-
-                strategy = new BasicReductionStrategy(strategy, reductionStrategy);
-            }
 
             var scheduleTrace = new ScheduleTrace();
             if (configuration.EnableLivenessChecking && configuration.EnableCycleDetection)
@@ -500,7 +480,23 @@ namespace Microsoft.PSharp.TestingServices.Runtime
                 "Cannot send event '{0}' to machine id '{1}' that was never previously bound to a machine of type '{2}'",
                 e.GetType().FullName, target.Value, target.Type);
 
-            this.Scheduler.ScheduleNextOperation(AsyncOperationType.Send, AsyncOperationTarget.Inbox, target.Value);
+            AsyncOperationType opType = AsyncOperationType.Send;
+
+            if (e.GetType().Name == "eTerminateRequest")
+            {
+                // Hardcoded for now, can convert to a generic attribute for production use.
+                opType = AsyncOperationType.InjectFailure;
+                this.Logger.WriteLine("<FailureInjectionLog> Injecting a failure.");
+            }
+
+            if (e.GetType().Name == "eFailure")
+            {
+                // Hardcoded for now, can convert to a generic attribute for production use.
+                opType = AsyncOperationType.InjectFailure;
+                this.Logger.WriteLine("<FailureInjectionLog> Injecting a failure.");
+            }
+
+            this.Scheduler.ScheduleNextOperation(opType, AsyncOperationTarget.Inbox, target.Value);
             ResetProgramCounter(sender as Machine);
 
             // The operation group id of this operation is set using the following precedence:
@@ -956,7 +952,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
             this.CreatedMachineIds.Add(machine.Id);
 
             // TODO: change to custom log.
-            this.Logger.OnCreateMachine(machine.Id, null);
+            this.LogWriter.OnCreateMachine(machine.Id, null);
 
             Task task = new Task(async () =>
             {
@@ -1919,35 +1915,49 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         }
 
         /// <summary>
-        /// Returns the fingerprint of the current program state.
+        /// Returns the current hashed state of the execution using the specified
+        /// level of abstraction. The hash is updated in each execution step.
         /// </summary>
-        internal Fingerprint GetProgramState()
+        internal int GetHashedExecutionState(AbstractionLevel abstractionLevel)
         {
-            Fingerprint fingerprint = null;
-
             unchecked
             {
-                int hash = 19;
+                int hash = 14689;
 
-                foreach (var machine in this.MachineMap.Values.OrderBy(mi => mi.Id.Value))
+                if (abstractionLevel is AbstractionLevel.Default ||
+                    abstractionLevel is AbstractionLevel.Full)
                 {
-                    if (machine is Machine m)
+                    foreach (var machine in this.MachineMap.Values)
                     {
-                        hash = (hash * 31) + m.GetCachedState();
+                        int machineHash = 37;
+                        machineHash = (machineHash * 397) + machine.GetHashedState(abstractionLevel);
+                        machineHash = (machineHash * 397) + this.GetAsynchronousOperation(machine.Id.Value).Type.GetHashCode();
+                        hash *= machineHash;
                     }
 
-                    hash = (hash * 31) + (int)this.GetAsynchronousOperation(machine.Id.Value).Type;
+                    foreach (var monitor in this.Monitors)
+                    {
+                        hash = (hash * 397) + monitor.GetHashedState(abstractionLevel);
+                    }
                 }
-
-                foreach (var monitor in this.Monitors)
+                else if (abstractionLevel is AbstractionLevel.InboxOnly ||
+                    abstractionLevel is AbstractionLevel.Custom)
                 {
-                    hash = (hash * 31) + monitor.GetCachedState();
+                    foreach (var machine in this.MachineMap.Values)
+                    {
+                        int machineHash = 37;
+                        machineHash = (machineHash * 397) + machine.GetHashedState(abstractionLevel);
+                        hash *= machineHash;
+                    }
+
+                    foreach (var monitor in this.Monitors)
+                    {
+                        hash = (hash * 397) + monitor.GetHashedState(abstractionLevel);
+                    }
                 }
 
-                fingerprint = new Fingerprint(hash);
+                return hash;
             }
-
-            return fingerprint;
         }
 
         /// <summary>
