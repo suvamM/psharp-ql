@@ -43,40 +43,24 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
         /// <summary>
         /// Returns the next asynchronous operation to schedule.
         /// </summary>
-        public abstract bool GetNext(out IAsyncOperation next, List<IAsyncOperation> ops, IAsyncOperation current);
+        public abstract bool GetNext(IAsyncOperation current, List<IAsyncOperation> ops, out IAsyncOperation next);
 
         /// <summary>
         /// Returns the next boolean choice.
         /// </summary>
-        public abstract bool GetNextBooleanChoice(int maxValue, out bool next);
+        public abstract bool GetNextBooleanChoice(IAsyncOperation current, int maxValue, out bool next);
 
         /// <summary>
         /// Returns the next integer choice.
         /// </summary>
-        public abstract bool GetNextIntegerChoice(int maxValue, out int next);
+        public abstract bool GetNextIntegerChoice(IAsyncOperation current, int maxValue, out int next);
 
         /// <summary>
-        /// Forces the next asynchronous operation to be scheduled.
+        /// Notifies the scheduling strategy that a bug was
+        /// found in the current iteration.
         /// </summary>
-        public void ForceNext(IAsyncOperation next, List<IAsyncOperation> ops, IAsyncOperation current)
+        public void NotifyBugFound()
         {
-            throw new NotImplementedException();
-        }
-
-        /// <summary>
-        /// Forces the next boolean choice.
-        /// </summary>
-        public void ForceNextBooleanChoice(int maxValue, bool next)
-        {
-            throw new NotImplementedException();
-        }
-
-        /// <summary>
-        /// Forces the next integer choice.
-        /// </summary>
-        public void ForceNextIntegerChoice(int maxValue, int next)
-        {
-            throw new NotImplementedException();
         }
 
         /// <summary>

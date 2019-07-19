@@ -60,8 +60,17 @@ namespace Raft
                 this.Send(this.Target, new TimeoutEvent());
             }
 
+            if (this.Random())
+            {
+                this.Send(this.Id, new TickEvent());
+            }
+            else
+            {
+                this.Raise(new CancelTimerEvent());
+            }
+
             //this.Send(this.Id, new TickEvent());
-            this.Raise(new CancelTimerEvent());
+            //this.Raise(new CancelTimerEvent());
         }
 
         [OnEventGotoState(typeof(StartTimerEvent), typeof(Active))]

@@ -866,7 +866,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             configuration.MaxUnfairSchedulingSteps = 200;
             configuration.MaxFairSchedulingSteps = 2000;
             configuration.LivenessTemperatureThreshold = 1000;
-            configuration.RandomSchedulingSeed = 315;
+            configuration.SchedulingSeed = 315;
             configuration.SchedulingIterations = 1;
 
             this.TestWithError(r =>
@@ -887,7 +887,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             configuration.MaxUnfairSchedulingSteps = 100;
             configuration.MaxFairSchedulingSteps = 1000;
             configuration.LivenessTemperatureThreshold = 500;
-            configuration.RandomSchedulingSeed = 2;
+            configuration.SchedulingSeed = 2;
             configuration.SchedulingIterations = 1;
 
             this.TestWithError(r =>

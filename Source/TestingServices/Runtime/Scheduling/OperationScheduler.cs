@@ -14,6 +14,7 @@ using Microsoft.PSharp.Runtime;
 using Microsoft.PSharp.TestingServices.Runtime;
 using Microsoft.PSharp.TestingServices.Scheduling.Strategies;
 using Microsoft.PSharp.TestingServices.Tracing.Schedule;
+using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.TestingServices.Scheduling
 {
@@ -133,6 +134,12 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             MachineOperation current = this.ScheduledOperation;
             current.SetNextOperation(type, target, targetId);
 
+            // Update the current execution state.
+            current.DefaultHashedState = this.Runtime.GetHashedExecutionState(AbstractionLevel.Default);
+            current.InboxOnlyHashedState = this.Runtime.GetHashedExecutionState(AbstractionLevel.InboxOnly);
+            current.CustomHashedState = this.Runtime.GetHashedExecutionState(AbstractionLevel.Custom);
+            current.FullHashedState = this.Runtime.GetHashedExecutionState(AbstractionLevel.Full);
+
             // Try enable any operation that is currently waiting, but has
             // its dependencies already satisfied.
             foreach (var op in this.OperationMap.Values)
@@ -143,7 +150,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
 
             // Get and order the operations by their id.
             var ops = this.OperationMap.Values.OrderBy(op => op.SourceId).Select(op => op as IAsyncOperation).ToList();
-            if (!this.Strategy.GetNext(out IAsyncOperation next, ops, current))
+            if (!this.Strategy.GetNext(current, ops, out IAsyncOperation next))
             {
                 // Checks if the program has livelocked.
                 this.CheckIfProgramHasLivelocked(ops.Select(op => op as MachineOperation));
@@ -209,7 +216,13 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             // Checks if the scheduling steps bound has been reached.
             this.CheckIfSchedulingStepsBoundIsReached();
 
-            if (!this.Strategy.GetNextBooleanChoice(maxValue, out bool choice))
+            // Update the current execution state.
+            this.ScheduledOperation.DefaultHashedState = this.Runtime.GetHashedExecutionState(AbstractionLevel.Default);
+            this.ScheduledOperation.InboxOnlyHashedState = this.Runtime.GetHashedExecutionState(AbstractionLevel.InboxOnly);
+            this.ScheduledOperation.CustomHashedState = this.Runtime.GetHashedExecutionState(AbstractionLevel.Custom);
+            this.ScheduledOperation.FullHashedState = this.Runtime.GetHashedExecutionState(AbstractionLevel.Full);
+
+            if (!this.Strategy.GetNextBooleanChoice(this.ScheduledOperation, maxValue, out bool choice))
             {
                 Debug.WriteLine("<ScheduleDebug> Schedule explored.");
                 this.Stop();
@@ -239,7 +252,13 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             // Checks if the scheduling steps bound has been reached.
             this.CheckIfSchedulingStepsBoundIsReached();
 
-            if (!this.Strategy.GetNextIntegerChoice(maxValue, out int choice))
+            // Update the current execution state.
+            this.ScheduledOperation.DefaultHashedState = this.Runtime.GetHashedExecutionState(AbstractionLevel.Default);
+            this.ScheduledOperation.InboxOnlyHashedState = this.Runtime.GetHashedExecutionState(AbstractionLevel.InboxOnly);
+            this.ScheduledOperation.CustomHashedState = this.Runtime.GetHashedExecutionState(AbstractionLevel.Custom);
+            this.ScheduledOperation.FullHashedState = this.Runtime.GetHashedExecutionState(AbstractionLevel.Full);
+
+            if (!this.Strategy.GetNextIntegerChoice(this.ScheduledOperation, maxValue, out int choice))
             {
                 Debug.WriteLine("<ScheduleDebug> Schedule explored.");
                 this.Stop();
@@ -319,15 +338,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         }
 
         /// <summary>
-        /// Notify that a monitor was registered.
-        /// </summary>
-        // internal void NotifyMonitorRegistered(MachineOperation op)
-        // {
-        //    this.OperationMap.Add(op.SourceId, op);
-        //    Debug.WriteLine($"<ScheduleDebug> Created monitor of '{op.SourceName}'.");
-        // }
-
-        /// <summary>
         /// Notify that an assertion has failed.
         /// </summary>
         internal void NotifyAssertionFailure(string text, bool killTasks = true, bool cancelExecution = true)
@@ -336,8 +346,8 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             {
                 this.BugReport = text;
 
-                this.Runtime.Logger.OnError($"<ErrorLog> {text}");
-                this.Runtime.Logger.OnStrategyError(this.Configuration.SchedulingStrategy, this.Strategy.GetDescription());
+                this.Runtime.LogWriter.OnError($"<ErrorLog> {text}");
+                this.Runtime.LogWriter.OnStrategyError(this.Configuration.SchedulingStrategy, this.Strategy.GetDescription());
 
                 this.BugFound = true;
 
@@ -543,7 +553,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                 }
                 else
                 {
-                    Debug.WriteLine($"<ScheduleDebug> {message}");
+                    Debug.WriteLine("<ScheduleDebug> {0}", message);
                     this.Stop();
                     throw new ExecutionCanceledException();
                 }

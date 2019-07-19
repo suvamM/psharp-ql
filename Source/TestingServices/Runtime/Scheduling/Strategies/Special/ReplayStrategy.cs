@@ -78,7 +78,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
         /// <summary>
         /// Returns the next asynchronous operation to schedule.
         /// </summary>
-        public bool GetNext(out IAsyncOperation next, List<IAsyncOperation> ops, IAsyncOperation current)
+        public bool GetNext(IAsyncOperation current, List<IAsyncOperation> ops, out IAsyncOperation next)
         {
             if (this.IsReplaying)
             {
@@ -126,7 +126,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
                     else
                     {
                         this.IsReplaying = false;
-                        return this.SuffixStrategy.GetNext(out next, ops, current);
+                        return this.SuffixStrategy.GetNext(current, ops, out next);
                     }
                 }
 
@@ -134,13 +134,13 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
                 return true;
             }
 
-            return this.SuffixStrategy.GetNext(out next, ops, current);
+            return this.SuffixStrategy.GetNext(current, ops, out next);
         }
 
         /// <summary>
         /// Returns the next boolean choice.
         /// </summary>
-        public bool GetNextBooleanChoice(int maxValue, out bool next)
+        public bool GetNextBooleanChoice(IAsyncOperation current, int maxValue, out bool next)
         {
             if (this.IsReplaying)
             {
@@ -182,7 +182,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
                     else
                     {
                         this.IsReplaying = false;
-                        return this.SuffixStrategy.GetNextBooleanChoice(maxValue, out next);
+                        return this.SuffixStrategy.GetNextBooleanChoice(current, maxValue, out next);
                     }
                 }
 
@@ -191,13 +191,13 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
                 return true;
             }
 
-            return this.SuffixStrategy.GetNextBooleanChoice(maxValue, out next);
+            return this.SuffixStrategy.GetNextBooleanChoice(current, maxValue, out next);
         }
 
         /// <summary>
         /// Returns the next integer choice.
         /// </summary>
-        public bool GetNextIntegerChoice(int maxValue, out int next)
+        public bool GetNextIntegerChoice(IAsyncOperation current, int maxValue, out int next)
         {
             if (this.IsReplaying)
             {
@@ -239,7 +239,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
                     else
                     {
                         this.IsReplaying = false;
-                        return this.SuffixStrategy.GetNextIntegerChoice(maxValue, out next);
+                        return this.SuffixStrategy.GetNextIntegerChoice(current, maxValue, out next);
                     }
                 }
 
@@ -248,31 +248,15 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
                 return true;
             }
 
-            return this.SuffixStrategy.GetNextIntegerChoice(maxValue, out next);
+            return this.SuffixStrategy.GetNextIntegerChoice(current, maxValue, out next);
         }
 
         /// <summary>
-        /// Forces the next asynchronous operation to be scheduled.
+        /// Notifies the scheduling strategy that a bug was
+        /// found in the current iteration.
         /// </summary>
-        public void ForceNext(IAsyncOperation next, List<IAsyncOperation> ops, IAsyncOperation current)
+        public void NotifyBugFound()
         {
-            throw new NotImplementedException();
-        }
-
-        /// <summary>
-        /// Forces the next boolean choice.
-        /// </summary>
-        public void ForceNextBooleanChoice(int maxValue, bool next)
-        {
-            throw new NotImplementedException();
-        }
-
-        /// <summary>
-        /// Forces the next integer choice.
-        /// </summary>
-        public void ForceNextIntegerChoice(int maxValue, int next)
-        {
-            throw new NotImplementedException();
         }
 
         /// <summary>

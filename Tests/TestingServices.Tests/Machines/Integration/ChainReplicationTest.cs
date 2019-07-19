@@ -1545,7 +1545,7 @@ namespace Microsoft.PSharp.TestingServices.Tests
             configuration.SchedulingStrategy = Utilities.SchedulingStrategy.FairPCT;
             configuration.PrioritySwitchBound = 1;
             configuration.MaxSchedulingSteps = 100;
-            configuration.RandomSchedulingSeed = seed;
+            configuration.SchedulingSeed = seed;
             configuration.SchedulingIterations = 2;
 
             this.TestWithError(r =>

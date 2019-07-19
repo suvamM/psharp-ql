@@ -174,7 +174,7 @@ namespace Microsoft.PSharp
 
         /// <summary>
         /// User-defined hashed state of the machine. Override to improve the
-        /// accuracy of liveness checking when state-caching is enabled.
+        /// accuracy of stateful techniques.
         /// </summary>
         protected virtual int HashedState => 0;
 
@@ -1249,30 +1249,58 @@ namespace Microsoft.PSharp
                 this.PushTransitions.ContainsKey(typeof(Default));
 
         /// <summary>
-        /// Returns the cached state of this machine.
+        /// Returns the hashed state of the machine using the specified level of abstraction.
         /// </summary>
-        internal override int GetCachedState()
+        internal override int GetHashedState(AbstractionLevel abstractionLevel)
         {
             unchecked
             {
-                var hash = 19;
-                hash = (hash * 31) + this.GetType().GetHashCode();
-                hash = (hash * 31) + this.Id.Value.GetHashCode();
-                hash = (hash * 31) + this.IsHalted.GetHashCode();
-
-                hash = (hash * 31) + this.StateManager.GetCachedState();
-
-                foreach (var state in this.StateStack)
+                int hash = 37;
+                if (abstractionLevel is AbstractionLevel.Default)
                 {
-                    hash = (hash * 31) + state.GetType().GetHashCode();
+                    hash = (hash * 397) + this.GetType().GetHashCode();
+                    hash = (hash * 397) + this.IsHalted.GetHashCode();
+                    hash = (hash * 397) + this.StateManager.GetCachedState();
+
+                    foreach (var state in this.StateStack)
+                    {
+                        hash = (hash * 397) + state.GetType().GetHashCode();
+                    }
+
+                    hash = (hash * 397) + this.Inbox.GetCachedState();
                 }
-
-                hash = (hash * 31) + this.Inbox.GetCachedState();
-
-                if (this.Runtime.Configuration.EnableUserDefinedStateHashing)
+                else if (abstractionLevel is AbstractionLevel.InboxOnly)
                 {
-                    // Adds the user-defined hashed machine state.
-                    hash = (hash * 31) + this.HashedState;
+                    hash = (hash * 397) + this.Inbox.GetCachedState();
+                }
+                else if (abstractionLevel is AbstractionLevel.Custom)
+                {
+                    hash = (hash * 397) + this.Inbox.GetCachedState();
+
+                    if (this.HashedState != 0)
+                    {
+                        // Adds the user-defined hashed machine state.
+                        hash = (hash * 397) + this.HashedState;
+                    }
+                }
+                else if (abstractionLevel is AbstractionLevel.Full)
+                {
+                    hash = (hash * 397) + this.GetType().GetHashCode();
+                    hash = (hash * 397) + this.IsHalted.GetHashCode();
+                    hash = (hash * 397) + this.StateManager.GetCachedState();
+
+                    foreach (var state in this.StateStack)
+                    {
+                        hash = (hash * 397) + state.GetType().GetHashCode();
+                    }
+
+                    hash = (hash * 397) + this.Inbox.GetCachedState();
+
+                    if (this.HashedState != 0)
+                    {
+                        // Adds the user-defined hashed machine state.
+                        hash = (hash * 397) + this.HashedState;
+                    }
                 }
 
                 return hash;

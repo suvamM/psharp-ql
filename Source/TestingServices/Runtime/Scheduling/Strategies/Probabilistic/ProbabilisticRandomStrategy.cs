@@ -21,16 +21,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ProbabilisticRandomStrategy"/> class.
-        /// It uses the default random number generator (seed is based on current time).
-        /// </summary>
-        public ProbabilisticRandomStrategy(int maxSteps, int numberOfCoinFlips)
-            : base(maxSteps)
-        {
-            this.NumberOfCoinFlips = numberOfCoinFlips;
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="ProbabilisticRandomStrategy"/> class.
         /// It uses the specified random number generator.
         /// </summary>
         public ProbabilisticRandomStrategy(int maxSteps, int numberOfCoinFlips, IRandomNumberGenerator random)
@@ -42,7 +32,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
         /// <summary>
         /// Returns the next asynchronous operation to schedule.
         /// </summary>
-        public override bool GetNext(out IAsyncOperation next, List<IAsyncOperation> ops, IAsyncOperation current)
+        public override bool GetNext(IAsyncOperation current, List<IAsyncOperation> ops, out IAsyncOperation next)
         {
             var enabledOperations = ops.Where(op => op.Status is AsyncOperationStatus.Enabled).ToList();
             if (enabledOperations.Count == 0)

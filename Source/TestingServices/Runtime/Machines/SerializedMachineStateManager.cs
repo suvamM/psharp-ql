@@ -77,16 +77,13 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// <summary>
         /// Returns the cached state of the machine.
         /// </summary>
-        public int GetCachedState()
-        {
-            unchecked
-            {
-                var hash = 19;
-                hash = (hash * 31) + this.IsEventHandlerRunning.GetHashCode();
-                hash = (hash * 31) + this.ProgramCounter;
-                return hash;
-            }
-        }
+        public int GetCachedState() => 0;
+        // {
+        //    unchecked
+        //    {
+        //        return this.ProgramCounter.GetHashCode();
+        //    }
+        // }
 
         /// <summary>
         /// Checks if the specified event is ignored in the current machine state.

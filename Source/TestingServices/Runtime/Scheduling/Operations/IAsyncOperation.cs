@@ -46,5 +46,29 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// gives the step index of the corresponding <see cref="AsyncOperationType.Send"/>.
         /// </summary>
         ulong MatchingSendIndex { get; }
+
+        /// <summary>
+        /// Hash that represents the execution state under the default
+        /// abstraction when this operation last executed.
+        /// </summary>
+        int DefaultHashedState { get; }
+
+        /// <summary>
+        /// Hash that represents the execution state under the inbox-only
+        /// abstraction when this operation last executed.
+        /// </summary>
+        int InboxOnlyHashedState { get; }
+
+        /// <summary>
+        /// Hash that represents the execution state under the custom
+        /// abstraction when this operation last executed.
+        /// </summary>
+        int CustomHashedState { get; }
+
+        /// <summary>
+        /// Hash that represents the execution state under the full
+        /// abstraction when this operation last executed.
+        /// </summary>
+        int FullHashedState { get; }
     }
 }

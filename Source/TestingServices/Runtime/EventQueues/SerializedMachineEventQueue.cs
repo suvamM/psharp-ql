@@ -323,14 +323,14 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         {
             unchecked
             {
-                var hash = 19;
+                int hash = 37;
                 foreach (var (_, _, info) in this.Queue)
                 {
-                    hash = (hash * 31) + info.EventName.GetHashCode();
+                    hash = (hash * 397) + info.EventName.GetHashCode();
                     if (info.HashedState != 0)
                     {
                         // Adds the user-defined hashed event state.
-                        hash = (hash * 31) + info.HashedState;
+                        hash = (hash * 397) + info.HashedState;
                     }
                 }
 

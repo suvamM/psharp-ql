@@ -50,7 +50,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
         /// <summary>
         /// Returns the next asynchronous operation to schedule.
         /// </summary>
-        public bool GetNext(out IAsyncOperation next, List<IAsyncOperation> ops, IAsyncOperation current)
+        public bool GetNext(IAsyncOperation current, List<IAsyncOperation> ops, out IAsyncOperation next)
         {
             next = null;
 
@@ -156,7 +156,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
         /// <summary>
         /// Returns the next boolean choice.
         /// </summary>
-        public bool GetNextBooleanChoice(int maxValue, out bool next)
+        public bool GetNextBooleanChoice(IAsyncOperation current, int maxValue, out bool next)
         {
             next = false;
             this.ExploredSteps++;
@@ -227,7 +227,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
         /// <summary>
         /// Returns the next integer choice.
         /// </summary>
-        public bool GetNextIntegerChoice(int maxValue, out int next)
+        public bool GetNextIntegerChoice(IAsyncOperation current, int maxValue, out int next)
         {
             next = 0;
             this.ExploredSteps++;
@@ -301,23 +301,10 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
         }
 
         /// <summary>
-        /// Forces the next asynchronous operation to be scheduled.
+        /// Notifies the scheduling strategy that a bug was
+        /// found in the current iteration.
         /// </summary>
-        public void ForceNext(IAsyncOperation next, List<IAsyncOperation> ops, IAsyncOperation current)
-        {
-        }
-
-        /// <summary>
-        /// Forces the next boolean choice.
-        /// </summary>
-        public void ForceNextBooleanChoice(int maxValue, bool next)
-        {
-        }
-
-        /// <summary>
-        /// Forces the next integer choice.
-        /// </summary>
-        public void ForceNextIntegerChoice(int maxValue, int next)
+        public void NotifyBugFound()
         {
         }
 

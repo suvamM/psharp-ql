@@ -46,7 +46,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
         /// <summary>
         /// Fingerprints captured in the latest potential cycle.
         /// </summary>
-        private readonly HashSet<Fingerprint> PotentialCycleFingerprints;
+        private readonly HashSet<int> PotentialCycleFingerprints;
 
         /// <summary>
         /// Is strategy trying to replay a potential cycle.
@@ -84,7 +84,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
         /// <summary>
         /// Map of fingerprints to schedule step indexes.
         /// </summary>
-        private readonly Dictionary<Fingerprint, List<int>> FingerprintIndexMap;
+        private readonly Dictionary<int, List<int>> FingerprintIndexMap;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="CycleDetectionStrategy"/> class.
@@ -98,22 +98,22 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
 
             this.HotMonitors = new HashSet<Monitor>();
             this.PotentialCycle = new List<ScheduleStep>();
-            this.PotentialCycleFingerprints = new HashSet<Fingerprint>();
+            this.PotentialCycleFingerprints = new HashSet<int>();
 
             this.LivenessTemperature = 0;
             this.EndOfCycleIndex = 0;
             this.CurrentCycleIndex = 0;
 
-            this.Seed = this.Configuration.RandomSchedulingSeed ?? DateTime.Now.Millisecond;
+            this.Seed = this.Configuration.SchedulingSeed ?? DateTime.Now.Millisecond;
             this.Random = new DefaultRandomNumberGenerator(this.Seed);
 
-            this.FingerprintIndexMap = new Dictionary<Fingerprint, List<int>>();
+            this.FingerprintIndexMap = new Dictionary<int, List<int>>();
         }
 
         /// <summary>
         /// Returns the next asynchronous operation to schedule.
         /// </summary>
-        public override bool GetNext(out IAsyncOperation next, List<IAsyncOperation> ops, IAsyncOperation current)
+        public override bool GetNext(IAsyncOperation current, List<IAsyncOperation> ops, out IAsyncOperation next)
         {
             this.CaptureAndCheckProgramState();
 
@@ -131,7 +131,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
                 {
                     Debug.WriteLine("<LivenessDebug> Trace is not reproducible: next step is not an operation.");
                     this.EscapeUnfairCycle();
-                    return this.SchedulingStrategy.GetNext(out next, ops, current);
+                    return this.SchedulingStrategy.GetNext(current, ops, out next);
                 }
 
                 Debug.WriteLine("<LivenessDebug> Replaying '{0}' '{1}'.", nextStep.Index, nextStep.ScheduledOperationId);
@@ -141,10 +141,8 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
                 {
                     Debug.WriteLine("<LivenessDebug> Trace is not reproducible: cannot detect machine with id '{0}'.", nextStep.ScheduledOperationId);
                     this.EscapeUnfairCycle();
-                    return this.SchedulingStrategy.GetNext(out next, ops, current);
+                    return this.SchedulingStrategy.GetNext(current, ops, out next);
                 }
-
-                this.SchedulingStrategy.ForceNext(next, ops, current);
 
                 this.CurrentCycleIndex++;
                 if (this.CurrentCycleIndex == this.PotentialCycle.Count)
@@ -156,14 +154,14 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
             }
             else
             {
-                return this.SchedulingStrategy.GetNext(out next, ops, current);
+                return this.SchedulingStrategy.GetNext(current, ops, out next);
             }
         }
 
         /// <summary>
         /// Returns the next boolean choice.
         /// </summary>
-        public override bool GetNextBooleanChoice(int maxValue, out bool next)
+        public override bool GetNextBooleanChoice(IAsyncOperation current, int maxValue, out bool next)
         {
             this.CaptureAndCheckProgramState();
 
@@ -174,14 +172,12 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
                 {
                     Debug.WriteLine("<LivenessDebug> Trace is not reproducible: next step is not a nondeterministic boolean choice.");
                     this.EscapeUnfairCycle();
-                    return this.SchedulingStrategy.GetNextBooleanChoice(maxValue, out next);
+                    return this.SchedulingStrategy.GetNextBooleanChoice(current, maxValue, out next);
                 }
 
                 Debug.WriteLine("<LivenessDebug> Replaying '{0}' '{1}'.", nextStep.Index, nextStep.BooleanChoice.Value);
 
                 next = nextStep.BooleanChoice.Value;
-
-                this.SchedulingStrategy.ForceNextBooleanChoice(maxValue, next);
 
                 this.CurrentCycleIndex++;
                 if (this.CurrentCycleIndex == this.PotentialCycle.Count)
@@ -193,14 +189,14 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
             }
             else
             {
-                return this.SchedulingStrategy.GetNextBooleanChoice(maxValue, out next);
+                return this.SchedulingStrategy.GetNextBooleanChoice(current, maxValue, out next);
             }
         }
 
         /// <summary>
         /// Returns the next integer choice.
         /// </summary>
-        public override bool GetNextIntegerChoice(int maxValue, out int next)
+        public override bool GetNextIntegerChoice(IAsyncOperation current, int maxValue, out int next)
         {
             this.CaptureAndCheckProgramState();
 
@@ -212,14 +208,12 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
                 {
                     Debug.WriteLine("<LivenessDebug> Trace is not reproducible: next step is not a nondeterministic integer choice.");
                     this.EscapeUnfairCycle();
-                    return this.SchedulingStrategy.GetNextIntegerChoice(maxValue, out next);
+                    return this.SchedulingStrategy.GetNextIntegerChoice(current, maxValue, out next);
                 }
 
                 Debug.WriteLine("<LivenessDebug> Replaying '{0}' '{1}'.", nextStep.Index, nextStep.IntegerChoice.Value);
 
                 next = nextStep.IntegerChoice.Value;
-
-                this.SchedulingStrategy.ForceNextIntegerChoice(maxValue, next);
 
                 this.CurrentCycleIndex++;
                 if (this.CurrentCycleIndex == this.PotentialCycle.Count)
@@ -231,7 +225,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
             }
             else
             {
-                return this.SchedulingStrategy.GetNextIntegerChoice(maxValue, out next);
+                return this.SchedulingStrategy.GetNextIntegerChoice(current, maxValue, out next);
             }
         }
 
@@ -313,7 +307,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
 
             if (this.Configuration.SafetyPrefixBound <= this.GetScheduledSteps())
             {
-                bool stateExists = this.StateCache.CaptureState(out State _, out Fingerprint fingerprint,
+                bool stateExists = this.StateCache.CaptureState(out State _, out int fingerprint,
                     this.FingerprintIndexMap, this.ScheduleTrace.Peek(), this.Monitors);
                 if (stateExists)
                 {

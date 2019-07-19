@@ -58,6 +58,11 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <summary>
         /// An asynchronous operation waits for another asynchronous operation to stop.
         /// </summary>
-        Join
+        Join,
+
+        /// <summary>
+        /// An asynchronous task is injecting a failure to another task.
+        /// </summary>
+        InjectFailure
     }
 }

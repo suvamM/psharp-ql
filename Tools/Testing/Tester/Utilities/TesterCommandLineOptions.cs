@@ -5,6 +5,7 @@
 
 using System;
 using Microsoft.PSharp.IO;
+using Microsoft.PSharp.TestingServices.Scheduling.Strategies;
 
 namespace Microsoft.PSharp.Utilities
 {
@@ -26,6 +27,7 @@ namespace Microsoft.PSharp.Utilities
             if (IsMatch(option, @"^[\/|-]test:") && option.Length > 6)
             {
                 this.Configuration.AssemblyToBeAnalyzed = option.Substring(6);
+                RandomStrategy.Name = this.Configuration.AssemblyToBeAnalyzed;
             }
             else if (IsMatch(option, @"^[\/|-]runtime:") && option.Length > 9)
             {
@@ -62,6 +64,14 @@ namespace Microsoft.PSharp.Utilities
 
                     this.Configuration.SchedulingStrategy = SchedulingStrategy.ProbabilisticRandom;
                     this.Configuration.CoinFlipBound = i;
+                }
+                else if (IsMatch(scheduler, @"^greedy$"))
+                {
+                    this.Configuration.SchedulingStrategy = SchedulingStrategy.GreedyRandom;
+                }
+                else if (IsMatch(scheduler, @"^fair-greedy$"))
+                {
+                    this.Configuration.SchedulingStrategy = SchedulingStrategy.FairGreedyRandom;
                 }
                 else if (IsMatch(scheduler, @"^pct"))
                 {
@@ -118,24 +128,73 @@ namespace Microsoft.PSharp.Utilities
                     this.Configuration.SchedulingStrategy = SchedulingStrategy.DelayBounding;
                     this.Configuration.DelayBound = i;
                 }
-                else if (IsMatch(scheduler, @"^rdb"))
+                else if (IsMatch(scheduler, @"^fairdb"))
                 {
                     int i = 0;
-                    if (IsMatch(scheduler, @"^rdb$") ||
-                        (!int.TryParse(scheduler.Substring(4), out i) && i >= 0))
+                    if (IsMatch(scheduler, @"^fairdb$") ||
+                        (!int.TryParse(scheduler.Substring("fairdb:".Length), out i) && i >= 0))
                     {
                         Error.ReportAndExit("Please give a valid delay " +
-                            "bound '-sch:rdb:[bound]', where [bound] >= 0.");
+                            "bound '-sch:fairdb:[bound]', where [bound] >= 0.");
                     }
 
-                    this.Configuration.SchedulingStrategy = SchedulingStrategy.RandomDelayBounding;
+                    this.Configuration.SchedulingStrategy = SchedulingStrategy.FairDelayBounding;
                     this.Configuration.DelayBound = i;
+                }
+                else if (IsMatch(scheduler, @"^idb$"))
+                {
+                    this.Configuration.SchedulingStrategy = SchedulingStrategy.IterativeDelayBounding;
+                }
+                else if (IsMatch(scheduler, @"^fair-idb$"))
+                {
+                    this.Configuration.SchedulingStrategy = SchedulingStrategy.FairIterativeDelayBounding;
+                }
+                else if (IsMatch(scheduler, @"^rl$"))
+                {
+                    this.Configuration.SchedulingStrategy = SchedulingStrategy.QLearning;
+                }
+                else if (IsMatch(scheduler, @"^fair-rl$"))
+                {
+                    this.Configuration.SchedulingStrategy = SchedulingStrategy.FairQLearning;
+                }
+                else if (IsMatch(scheduler, @"^no-random-rl$"))
+                {
+                    this.Configuration.SchedulingStrategy = SchedulingStrategy.NoRandomQLearning;
+                }
+                else if (IsMatch(scheduler, @"^fair-no-random-rl$"))
+                {
+                    this.Configuration.SchedulingStrategy = SchedulingStrategy.FairNoRandomQLearning;
                 }
                 else
                 {
                     Error.ReportAndExit("Please give a valid scheduling strategy " +
                         "'-sch:[x]', where [x] is 'random', 'pct' or 'dfs' (other " +
                         "experimental strategies also exist, but are not listed here).");
+                }
+            }
+            else if (IsMatch(option, @"^[\/|-]abstraction-level:") && option.Length > 20)
+            {
+                string absLevel = option.Substring(19);
+                if (IsMatch(absLevel, @"^default$"))
+                {
+                    this.Configuration.AbstractionLevel = AbstractionLevel.Default;
+                }
+                else if (IsMatch(absLevel, @"^inbox-only$"))
+                {
+                    this.Configuration.AbstractionLevel = AbstractionLevel.InboxOnly;
+                }
+                else if (IsMatch(absLevel, @"^custom$"))
+                {
+                    this.Configuration.AbstractionLevel = AbstractionLevel.Custom;
+                }
+                else if (IsMatch(absLevel, @"^full$"))
+                {
+                    this.Configuration.AbstractionLevel = AbstractionLevel.Full;
+                }
+                else
+                {
+                    Error.ReportAndExit("Please give a valid abstraction level " +
+                        "'-abstraction-level:[x]', where [x] is 'default', 'inbox-only', 'custom' or 'full'.");
                 }
             }
             else if (IsMatch(option, @"^[\/|-]replay:") && option.Length > 8)
@@ -148,27 +207,6 @@ namespace Microsoft.PSharp.Utilities
                 }
 
                 this.Configuration.ScheduleFile = option.Substring(8);
-            }
-            else if (IsMatch(option, @"^[\/|-]reduction:"))
-            {
-                string reduction = option.Substring(11);
-                if (IsMatch(reduction, @"^none$"))
-                {
-                    this.Configuration.ReductionStrategy = ReductionStrategy.None;
-                }
-                else if (IsMatch(reduction, @"^omit$"))
-                {
-                    this.Configuration.ReductionStrategy = ReductionStrategy.OmitSchedulingPoints;
-                }
-                else if (IsMatch(reduction, @"^force$"))
-                {
-                    this.Configuration.ReductionStrategy = ReductionStrategy.ForceSchedule;
-                }
-                else
-                {
-                    Error.ReportAndExit("Please give a valid reduction strategy " +
-                        "'-reduction:[x]', where [x] is 'none', 'omit' or 'force'.");
-                }
             }
             else if (IsMatch(option, @"^[\/|-]i:") && option.Length > 3)
             {
@@ -276,7 +314,7 @@ namespace Microsoft.PSharp.Utilities
                         "seed '-sch-seed:[x]', where [x] is a signed 32-bit integer.");
                 }
 
-                this.Configuration.RandomSchedulingSeed = seed;
+                this.Configuration.SchedulingSeed = seed;
             }
             else if (IsMatch(option, @"^[\/|-]max-steps:") && option.Length > 11)
             {
@@ -343,10 +381,6 @@ namespace Microsoft.PSharp.Utilities
             {
                 this.Configuration.EnableCycleDetection = true;
             }
-            else if (IsMatch(option, @"^[\/|-]custom-state-hashing$"))
-            {
-                this.Configuration.EnableUserDefinedStateHashing = true;
-            }
             else
             {
                 base.ParseOption(option);
@@ -367,6 +401,8 @@ namespace Microsoft.PSharp.Utilities
                 this.Configuration.SchedulingStrategy != SchedulingStrategy.Portfolio &&
                 this.Configuration.SchedulingStrategy != SchedulingStrategy.Random &&
                 this.Configuration.SchedulingStrategy != SchedulingStrategy.ProbabilisticRandom &&
+                this.Configuration.SchedulingStrategy != SchedulingStrategy.GreedyRandom &&
+                this.Configuration.SchedulingStrategy != SchedulingStrategy.FairGreedyRandom &&
                 this.Configuration.SchedulingStrategy != SchedulingStrategy.PCT &&
                 this.Configuration.SchedulingStrategy != SchedulingStrategy.FairPCT &&
                 this.Configuration.SchedulingStrategy != SchedulingStrategy.DFS &&
@@ -374,7 +410,13 @@ namespace Microsoft.PSharp.Utilities
                 this.Configuration.SchedulingStrategy != SchedulingStrategy.DPOR &&
                 this.Configuration.SchedulingStrategy != SchedulingStrategy.RDPOR &&
                 this.Configuration.SchedulingStrategy != SchedulingStrategy.DelayBounding &&
-                this.Configuration.SchedulingStrategy != SchedulingStrategy.RandomDelayBounding)
+                this.Configuration.SchedulingStrategy != SchedulingStrategy.IterativeDelayBounding &&
+                this.Configuration.SchedulingStrategy != SchedulingStrategy.FairDelayBounding &&
+                this.Configuration.SchedulingStrategy != SchedulingStrategy.FairIterativeDelayBounding &&
+                this.Configuration.SchedulingStrategy != SchedulingStrategy.QLearning &&
+                this.Configuration.SchedulingStrategy != SchedulingStrategy.FairQLearning &&
+                this.Configuration.SchedulingStrategy != SchedulingStrategy.NoRandomQLearning &&
+                this.Configuration.SchedulingStrategy != SchedulingStrategy.FairNoRandomQLearning)
             {
                 Error.ReportAndExit("Please give a valid scheduling strategy " +
                         "'-sch:[x]', where [x] is 'random' or 'pct' (other experimental " +
@@ -432,9 +474,9 @@ namespace Microsoft.PSharp.Utilities
                 }
             }
 
-            if (this.Configuration.RandomSchedulingSeed is null)
+            if (this.Configuration.SchedulingSeed is null)
             {
-                this.Configuration.RandomSchedulingSeed = DateTime.Now.Millisecond;
+                this.Configuration.SchedulingSeed = DateTime.Now.Millisecond;
             }
         }
 

@@ -17,7 +17,7 @@ namespace Microsoft.PSharp.TestingServices.StateCaching
         /// <summary>
         /// The fingerprint of the trace step.
         /// </summary>
-        internal Fingerprint Fingerprint { get; private set; }
+        internal int Fingerprint { get; private set; }
 
         /// <summary>
         /// Map from monitors to their liveness status.
@@ -33,7 +33,7 @@ namespace Microsoft.PSharp.TestingServices.StateCaching
         /// <summary>
         /// Initializes a new instance of the <see cref="State"/> class.
         /// </summary>
-        internal State(Fingerprint fingerprint, HashSet<ulong> enabledMachineIds, Dictionary<Monitor, MonitorStatus> monitorStatus)
+        internal State(int fingerprint, HashSet<ulong> enabledMachineIds, Dictionary<Monitor, MonitorStatus> monitorStatus)
         {
             this.Fingerprint = fingerprint;
             this.EnabledMachineIds = enabledMachineIds;

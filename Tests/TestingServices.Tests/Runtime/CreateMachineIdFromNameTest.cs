@@ -206,7 +206,6 @@ namespace Microsoft.PSharp.TestingServices.Tests
         {
             var configuration = Configuration.Create();
             configuration.SchedulingIterations = 100;
-            configuration.ReductionStrategy = Utilities.ReductionStrategy.None;
 
             this.TestWithError(r =>
             {

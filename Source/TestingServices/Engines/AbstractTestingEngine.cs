@@ -250,15 +250,26 @@ namespace Microsoft.PSharp.TestingServices
             }
             else if (this.Configuration.SchedulingStrategy == SchedulingStrategy.ProbabilisticRandom)
             {
-                this.Strategy = new ProbabilisticRandomStrategy(
-                    this.Configuration.MaxFairSchedulingSteps,
-                    this.Configuration.CoinFlipBound,
+                this.Strategy = new ProbabilisticRandomStrategy(this.Configuration.MaxFairSchedulingSteps,
+                    this.Configuration.CoinFlipBound, this.RandomNumberGenerator);
+            }
+            else if (this.Configuration.SchedulingStrategy == SchedulingStrategy.GreedyRandom)
+            {
+                this.Strategy = new GreedyRandomStrategy(this.Configuration.MaxFairSchedulingSteps,
                     this.RandomNumberGenerator);
+            }
+            else if (this.Configuration.SchedulingStrategy == SchedulingStrategy.FairGreedyRandom)
+            {
+                var prefixLength = this.Configuration.SafetyPrefixBound == 0 ?
+                    this.Configuration.MaxUnfairSchedulingSteps : this.Configuration.SafetyPrefixBound;
+                var prefixStrategy = new GreedyRandomStrategy(prefixLength, this.RandomNumberGenerator);
+                var suffixStrategy = new RandomStrategy(this.Configuration.MaxFairSchedulingSteps, this.RandomNumberGenerator);
+                this.Strategy = new ComboStrategy(prefixStrategy, suffixStrategy);
             }
             else if (this.Configuration.SchedulingStrategy == SchedulingStrategy.PCT)
             {
                 this.Strategy = new PCTStrategy(this.Configuration.MaxUnfairSchedulingSteps, this.Configuration.PrioritySwitchBound,
-                    this.RandomNumberGenerator);
+                   this.RandomNumberGenerator);
             }
             else if (this.Configuration.SchedulingStrategy == SchedulingStrategy.FairPCT)
             {
@@ -286,13 +297,55 @@ namespace Microsoft.PSharp.TestingServices
             }
             else if (this.Configuration.SchedulingStrategy == SchedulingStrategy.DelayBounding)
             {
-                this.Strategy = new ExhaustiveDelayBoundingStrategy(this.Configuration.MaxUnfairSchedulingSteps,
+                this.Strategy = new DelayBoundingStrategy(this.Configuration.MaxUnfairSchedulingSteps,
                     this.Configuration.DelayBound, this.RandomNumberGenerator);
             }
-            else if (this.Configuration.SchedulingStrategy == SchedulingStrategy.RandomDelayBounding)
+            else if (this.Configuration.SchedulingStrategy == SchedulingStrategy.FairDelayBounding)
             {
-                this.Strategy = new RandomDelayBoundingStrategy(this.Configuration.MaxUnfairSchedulingSteps,
-                    this.Configuration.DelayBound, this.RandomNumberGenerator);
+                var prefixLength = this.Configuration.SafetyPrefixBound == 0 ?
+                    this.Configuration.MaxUnfairSchedulingSteps : this.Configuration.SafetyPrefixBound;
+                var prefixStrategy = new DelayBoundingStrategy(prefixLength, this.Configuration.DelayBound, this.RandomNumberGenerator);
+                var suffixStrategy = new RandomStrategy(this.Configuration.MaxFairSchedulingSteps, this.RandomNumberGenerator);
+                this.Strategy = new ComboStrategy(prefixStrategy, suffixStrategy);
+            }
+            else if (this.Configuration.SchedulingStrategy == SchedulingStrategy.IterativeDelayBounding)
+            {
+                this.Strategy = new DelayBoundingStrategy(this.Configuration.MaxUnfairSchedulingSteps,
+                    0, this.RandomNumberGenerator);
+            }
+            else if (this.Configuration.SchedulingStrategy == SchedulingStrategy.FairIterativeDelayBounding)
+            {
+                var prefixLength = this.Configuration.SafetyPrefixBound == 0 ?
+                    this.Configuration.MaxUnfairSchedulingSteps : this.Configuration.SafetyPrefixBound;
+                var prefixStrategy = new DelayBoundingStrategy(prefixLength, 0, this.RandomNumberGenerator);
+                var suffixStrategy = new RandomStrategy(this.Configuration.MaxFairSchedulingSteps, this.RandomNumberGenerator);
+                this.Strategy = new ComboStrategy(prefixStrategy, suffixStrategy);
+            }
+            else if (this.Configuration.SchedulingStrategy == SchedulingStrategy.QLearning)
+            {
+                this.Strategy = new QLearningStrategy(this.Configuration.AbstractionLevel,
+                    this.Configuration.MaxFairSchedulingSteps, this.RandomNumberGenerator);
+            }
+            else if (this.Configuration.SchedulingStrategy == SchedulingStrategy.FairQLearning)
+            {
+                var prefixLength = this.Configuration.SafetyPrefixBound == 0 ?
+                    this.Configuration.MaxUnfairSchedulingSteps : this.Configuration.SafetyPrefixBound;
+                var prefixStrategy = new QLearningStrategy(this.Configuration.AbstractionLevel,
+                    prefixLength, this.RandomNumberGenerator);
+                var suffixStrategy = new RandomStrategy(this.Configuration.MaxFairSchedulingSteps, this.RandomNumberGenerator);
+                this.Strategy = new ComboStrategy(prefixStrategy, suffixStrategy);
+            }
+            else if (this.Configuration.SchedulingStrategy == SchedulingStrategy.NoRandomQLearning)
+            {
+                this.Strategy = new NoRandomQLearningStrategy(this.Configuration.MaxFairSchedulingSteps, this.RandomNumberGenerator);
+            }
+            else if (this.Configuration.SchedulingStrategy == SchedulingStrategy.FairNoRandomQLearning)
+            {
+                var prefixLength = this.Configuration.SafetyPrefixBound == 0 ?
+                    this.Configuration.MaxUnfairSchedulingSteps : this.Configuration.SafetyPrefixBound;
+                var prefixStrategy = new NoRandomQLearningStrategy(prefixLength, this.RandomNumberGenerator);
+                var suffixStrategy = new RandomStrategy(this.Configuration.MaxFairSchedulingSteps, this.RandomNumberGenerator);
+                this.Strategy = new ComboStrategy(prefixStrategy, suffixStrategy);
             }
             else if (this.Configuration.SchedulingStrategy == SchedulingStrategy.Portfolio)
             {
@@ -693,6 +746,32 @@ namespace Microsoft.PSharp.TestingServices
         }
 
         /// <summary>
+        /// Returns true if the strategy is using a random number generator, else false.
+        /// </summary>
+        protected bool IsStrategyUsingRandomNumberGenerator()
+        {
+            if (this.Configuration.SchedulingStrategy == SchedulingStrategy.Random ||
+               this.Configuration.SchedulingStrategy == SchedulingStrategy.ProbabilisticRandom ||
+               this.Configuration.SchedulingStrategy == SchedulingStrategy.GreedyRandom ||
+               this.Configuration.SchedulingStrategy == SchedulingStrategy.FairGreedyRandom ||
+               this.Configuration.SchedulingStrategy == SchedulingStrategy.PCT ||
+               this.Configuration.SchedulingStrategy == SchedulingStrategy.FairPCT ||
+               this.Configuration.SchedulingStrategy == SchedulingStrategy.DelayBounding ||
+               this.Configuration.SchedulingStrategy == SchedulingStrategy.FairDelayBounding ||
+               this.Configuration.SchedulingStrategy == SchedulingStrategy.IterativeDelayBounding ||
+               this.Configuration.SchedulingStrategy == SchedulingStrategy.FairIterativeDelayBounding ||
+               this.Configuration.SchedulingStrategy == SchedulingStrategy.QLearning ||
+               this.Configuration.SchedulingStrategy == SchedulingStrategy.FairQLearning ||
+               this.Configuration.SchedulingStrategy == SchedulingStrategy.NoRandomQLearning ||
+               this.Configuration.SchedulingStrategy == SchedulingStrategy.FairNoRandomQLearning)
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
         /// Installs the specified <see cref="IO.ILogger"/>.
         /// </summary>
         public void SetLogger(IO.ILogger logger)
@@ -712,7 +791,7 @@ namespace Microsoft.PSharp.TestingServices
         /// </summary>
         private void SetRandomNumberGenerator()
         {
-            int seed = this.Configuration.RandomSchedulingSeed ?? DateTime.Now.Millisecond;
+            int seed = this.Configuration.SchedulingSeed ?? DateTime.Now.Millisecond;
             this.RandomNumberGenerator = new DefaultRandomNumberGenerator(seed);
         }
 

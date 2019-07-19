@@ -131,7 +131,8 @@ publish/
 *.[Pp]ublish.xml
 *.azurePubxml
 
-# NuGet Packages Directory
+# NuGet
+Scripts/NuGet/nuget.exe
 packages/
 ## TODO: If the tool you use requires repositories.config uncomment the next line
 #!packages/repositories.config
@@ -180,4 +181,6 @@ UpgradeLog*.htm
 
 # Microsoft Fakes
 FakesAssemblies/
-Scripts/NuGet/nuget.exe
+
+#Benchmarks
+Benchmarks/out

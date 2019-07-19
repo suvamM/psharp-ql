@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
 
+using Microsoft.PSharp.IO;
 using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp
@@ -131,10 +132,10 @@ namespace Microsoft.PSharp
         public SchedulingStrategy SchedulingStrategy;
 
         /// <summary>
-        /// Reduction strategy to use with the P# tester.
+        /// Determine the abstraction to be used during exploration.
         /// </summary>
         [DataMember]
-        public ReductionStrategy ReductionStrategy;
+        public AbstractionLevel AbstractionLevel;
 
         /// <summary>
         /// Number of scheduling iterations.
@@ -143,17 +144,10 @@ namespace Microsoft.PSharp
         public int SchedulingIterations;
 
         /// <summary>
-        /// Seed for random scheduling strategies.
+        /// Seed to be used by probabilistic scheduling strategies.
         /// </summary>
         [DataMember]
-        public int? RandomSchedulingSeed;
-
-        /// <summary>
-        /// If true, the seed will increment in each
-        /// testing iteration.
-        /// </summary>
-        [DataMember]
-        public bool IncrementalSchedulingSeed;
+        public int? SchedulingSeed;
 
         /// <summary>
         /// If true, the P# tester performs a full exploration,
@@ -289,13 +283,6 @@ namespace Microsoft.PSharp
         /// </summary>
         [DataMember]
         public bool EnableCycleDetection;
-
-        /// <summary>
-        /// If this option is enabled, then the user-defined state-hashing methods
-        /// are used to improve the accurracy of state-caching for liveness checking.
-        /// </summary>
-        [DataMember]
-        public bool EnableUserDefinedStateHashing;
 
         /// <summary>
         /// Enables (safety) monitors in the production runtime.
@@ -467,10 +454,9 @@ namespace Microsoft.PSharp
             this.TestMethodName = string.Empty;
 
             this.SchedulingStrategy = SchedulingStrategy.Random;
-            this.ReductionStrategy = ReductionStrategy.None;
+            this.AbstractionLevel = AbstractionLevel.Default;
             this.SchedulingIterations = 1;
-            this.RandomSchedulingSeed = null;
-            this.IncrementalSchedulingSeed = false;
+            this.SchedulingSeed = null;
 
             this.PerformFullExploration = false;
             this.MaxFairSchedulingSteps = 0;
@@ -491,7 +477,6 @@ namespace Microsoft.PSharp
             this.EnableLivenessChecking = true;
             this.LivenessTemperatureThreshold = 0;
             this.EnableCycleDetection = false;
-            this.EnableUserDefinedStateHashing = false;
             this.EnableMonitorsInProduction = false;
             this.EnableNoApiCallAfterTransitionStmtAssertion = true;
 
@@ -578,16 +563,6 @@ namespace Microsoft.PSharp
         public Configuration WithMaxSteps(int maxSteps)
         {
             this.MaxSchedulingSteps = maxSteps;
-            return this;
-        }
-
-        /// <summary>
-        /// Updates the configuration with the specified seed for random scheduling strategies.
-        /// </summary>
-        /// <param name="seed">The seed for random scheduling strategies.</param>
-        public Configuration WithRandomSchedulingSeed(int seed)
-        {
-            this.RandomSchedulingSeed = seed;
             return this;
         }
 

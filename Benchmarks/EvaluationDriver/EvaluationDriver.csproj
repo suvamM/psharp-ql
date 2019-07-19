@@ -1,0 +1,13 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <Description>Evaluation driver to be used for RL evaluation.</Description>
+    <AssemblyName>EvaluationDriver</AssemblyName>
+    <RootNamespace>EvaluationDriver</RootNamespace>
+    <TargetFrameworks>net46</TargetFrameworks>
+    <OutputType>Exe</OutputType>
+    <OutputPath>..\bin\</OutputPath>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
+  </ItemGroup>
+</Project>

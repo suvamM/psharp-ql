@@ -95,7 +95,6 @@ namespace Microsoft.PSharp.TestingServices.Tests
         {
             var configuration = GetConfiguration();
             configuration.EnableCycleDetection = true;
-            configuration.EnableUserDefinedStateHashing = true;
             configuration.SchedulingIterations = 10;
             configuration.MaxSchedulingSteps = 200;
 
@@ -112,7 +111,6 @@ namespace Microsoft.PSharp.TestingServices.Tests
         {
             var configuration = GetConfiguration();
             configuration.EnableCycleDetection = true;
-            configuration.EnableUserDefinedStateHashing = true;
             configuration.MaxSchedulingSteps = 200;
 
             this.TestWithError(r =>
@@ -130,7 +128,6 @@ namespace Microsoft.PSharp.TestingServices.Tests
         {
             var configuration = GetConfiguration();
             configuration.EnableCycleDetection = true;
-            configuration.EnableUserDefinedStateHashing = true;
             configuration.MaxSchedulingSteps = 200;
 
             this.TestWithError(r =>

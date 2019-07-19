@@ -160,7 +160,6 @@ namespace Microsoft.PSharp.TestingServices.Tests
         public void TestMaxEventInstancesAssertionFailure()
         {
             var configuration = GetConfiguration();
-            configuration.ReductionStrategy = ReductionStrategy.None;
             configuration.SchedulingStrategy = SchedulingStrategy.DFS;
             configuration.MaxSchedulingSteps = 6;
 

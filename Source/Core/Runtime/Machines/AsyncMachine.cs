@@ -7,6 +7,7 @@ using System;
 using System.ComponentModel;
 
 using Microsoft.PSharp.IO;
+using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.Runtime
 {
@@ -47,9 +48,9 @@ namespace Microsoft.PSharp.Runtime
         }
 
         /// <summary>
-        /// Returns the cached state of this machine.
+        /// Returns the hashed state of the machine using the specified level of abstraction.
         /// </summary>
-        internal virtual int GetCachedState() => 0;
+        internal virtual int GetHashedState(AbstractionLevel abstractionLevel) => 0;
 
         /// <summary>
         /// Determines whether the specified object is equal to the current object.

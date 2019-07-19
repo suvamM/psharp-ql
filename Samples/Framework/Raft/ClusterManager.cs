@@ -70,10 +70,10 @@ namespace Raft
 
             for (int idx = 0; idx < this.NumberOfServers; idx++)
             {
-                this.Servers[idx] = this.CreateMachine(typeof(Server));
+                this.Servers[idx] = this.CreateMachine(typeof(Server), $"Server{idx}");
             }
 
-            this.Client = this.CreateMachine(typeof(Client));
+            this.Client = this.CreateMachine(typeof(Client), "Client");
 
             this.Raise(new LocalEvent());
         }

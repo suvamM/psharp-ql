@@ -26,28 +26,28 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
         /// <summary>
         /// Returns the next asynchronous operation to schedule.
         /// </summary>
-        public override bool GetNext(out IAsyncOperation next, List<IAsyncOperation> ops, IAsyncOperation current)
+        public override bool GetNext(IAsyncOperation current, List<IAsyncOperation> ops, out IAsyncOperation next)
         {
             this.CheckLivenessTemperature();
-            return this.SchedulingStrategy.GetNext(out next, ops, current);
+            return this.SchedulingStrategy.GetNext(current, ops, out next);
         }
 
         /// <summary>
         /// Returns the next boolean choice.
         /// </summary>
-        public override bool GetNextBooleanChoice(int maxValue, out bool next)
+        public override bool GetNextBooleanChoice(IAsyncOperation current, int maxValue, out bool next)
         {
             this.CheckLivenessTemperature();
-            return this.SchedulingStrategy.GetNextBooleanChoice(maxValue, out next);
+            return this.SchedulingStrategy.GetNextBooleanChoice(current, maxValue, out next);
         }
 
         /// <summary>
         /// Returns the next integer choice.
         /// </summary>
-        public override bool GetNextIntegerChoice(int maxValue, out int next)
+        public override bool GetNextIntegerChoice(IAsyncOperation current, int maxValue, out int next)
         {
             this.CheckLivenessTemperature();
-            return this.SchedulingStrategy.GetNextIntegerChoice(maxValue, out next);
+            return this.SchedulingStrategy.GetNextIntegerChoice(current, maxValue, out next);
         }
 
         /// <summary>

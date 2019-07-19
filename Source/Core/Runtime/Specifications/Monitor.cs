@@ -92,6 +92,12 @@ namespace Microsoft.PSharp
         protected internal string Name => this.Id.Name;
 
         /// <summary>
+        /// User-defined hashed state of the monitor. Override to improve the
+        /// accuracy of stateful techniques.
+        /// </summary>
+        protected virtual int HashedState => 0;
+
+        /// <summary>
         /// The logger installed to the P# runtime.
         /// </summary>
         protected ILogger Logger => this.Runtime.Logger;
@@ -529,27 +535,32 @@ namespace Microsoft.PSharp
         }
 
         /// <summary>
-        /// Returns the hashed state of this monitor.
+        /// Returns the hashed state of the monitor using the specified level of abstraction.
         /// </summary>
-        protected virtual int GetHashedState()
-        {
-            return 0;
-        }
-
-        /// <summary>
-        /// Returns the cached state of this monitor.
-        /// </summary>
-        internal int GetCachedState()
+        internal int GetHashedState(AbstractionLevel abstractionLevel)
         {
             unchecked
             {
                 var hash = 19;
 
-                hash = (hash * 31) + this.GetType().GetHashCode();
-                hash = (hash * 31) + this.CurrentState.GetHashCode();
+                if (abstractionLevel is AbstractionLevel.Default)
+                {
+                    hash = (hash * 31) + this.GetType().GetHashCode();
+                    hash = (hash * 31) + this.CurrentState.GetHashCode();
+                }
+                else if (abstractionLevel is AbstractionLevel.Custom)
+                {
+                    // Adds the user-defined hashed state.
+                    hash = (hash * 31) + this.HashedState;
+                }
+                else if (abstractionLevel is AbstractionLevel.Full)
+                {
+                    hash = (hash * 31) + this.GetType().GetHashCode();
+                    hash = (hash * 31) + this.CurrentState.GetHashCode();
 
-                // Adds the user-defined hashed state.
-                hash = (hash * 31) + this.GetHashedState();
+                    // Adds the user-defined hashed state.
+                    hash = (hash * 31) + this.HashedState;
+                }
 
                 return hash;
             }
