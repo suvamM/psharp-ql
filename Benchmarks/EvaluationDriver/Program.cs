@@ -88,6 +88,7 @@ namespace EvaluationDriver
                     p.StartInfo.Arguments += $"-i:{configuration.NumIterations} ";
                     p.StartInfo.Arguments += $"-max-steps:{configuration.MaxSteps}:{configuration.MaxSteps} ";
                     p.StartInfo.Arguments += $"-abstraction-level:{configuration.AbstractionLevel} ";
+                    p.StartInfo.Arguments += $"-timeout:{configuration.Timeout}";
                     p.StartInfo.Arguments += $"-sch:{schedulerType} ";
 
                     // Start the child process.
@@ -199,11 +200,12 @@ namespace EvaluationDriver
             internal readonly int NumIterations;
             internal readonly int MaxSteps;
             internal readonly string AbstractionLevel;
+            internal readonly int Timeout;
             internal readonly string[] Strategies;
 
             [JsonConstructor]
             internal Configuration(string testName, string assemblyPath, string outputPath, int numEpochs,
-                int numIterations, int maxSteps, string abstractionLevel, string[] strategies)
+                int numIterations, int maxSteps, string abstractionLevel, int timeout, string[] strategies)
             {
                 this.TesterPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location),
                     "..\\..\\..\\bin\\net46\\PSharpTester.exe");
@@ -214,6 +216,7 @@ namespace EvaluationDriver
                 this.NumIterations = numIterations;
                 this.MaxSteps = maxSteps;
                 this.AbstractionLevel = abstractionLevel;
+                this.Timeout = timeout;
                 this.Strategies = strategies;
             }
 
@@ -228,6 +231,7 @@ namespace EvaluationDriver
                 Console.WriteLine($"Num iterations: {this.NumIterations}");
                 Console.WriteLine($"Max steps: {this.MaxSteps}");
                 Console.WriteLine($"Abstraction level: {this.AbstractionLevel}");
+                Console.WriteLine($"Timeout: {this.Timeout}");
 
                 string strategies = string.Empty;
                 for (int idx = 0; idx < this.Strategies.Length; idx++)

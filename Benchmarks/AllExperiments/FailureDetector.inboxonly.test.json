@@ -6,6 +6,7 @@
   "numIterations" : 10000,
   "maxSteps" : 200,
   "abstractionLevel" : "inbox-only",
+  "timeout" : 0,
   "strategies" : [
     "QL"
   ]

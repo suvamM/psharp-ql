@@ -6,6 +6,7 @@
   "numIterations" : 10000,
   "maxSteps" : 1000,
   "abstractionLevel" : "full",
+  "timeout" : 0,
   "strategies" : [
     "QL"
   ]

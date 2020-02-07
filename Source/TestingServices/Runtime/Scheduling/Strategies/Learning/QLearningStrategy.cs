@@ -257,12 +257,14 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
         /// </summary>
         private int ChooseQValueIndexFromDistribution(List<double> qValues)
         {
-            double sum = 0;
+            double scalingFactor = qValues.Average();
+
             for (int i = 0; i < qValues.Count; i++)
             {
                 qValues[i] = Math.Exp(qValues[i]);
-                sum += qValues[i];
             }
+
+            double sum = qValues.Sum();
 
             for (int i = 0; i < qValues.Count; i++)
             {
