@@ -1,0 +1,12 @@
+{
+  "testName": "Test_Fib_Bench_Longest_2",
+  "assemblyPath" : "Benchmarks.Threading.dll",
+  "outputPath" : "..\\..\\out\\FibBenchLongest2\\full",
+  "numEpochs" : 100,
+  "numIterations" : 10000,
+  "maxSteps" : 1000,
+  "abstractionLevel" : "full",
+  "strategies" : [
+    "QL"
+  ]
+}

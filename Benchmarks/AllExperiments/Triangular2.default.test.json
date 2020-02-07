@@ -1,0 +1,12 @@
+{
+  "testName": "Test_Triangular_2",
+  "assemblyPath" : "Benchmarks.Threading.dll",
+  "outputPath" : "..\\..\\out\\Triangular2\\default",
+  "numEpochs" : 100,
+  "numIterations" : 10000,
+  "maxSteps" : 1000,
+  "abstractionLevel" : "default",
+  "strategies" : [
+    "QL", "QL-NDN", "Random", "Greedy", "PCT-3", "PCT-10", "PCT-30", "IDB"
+  ]
+}

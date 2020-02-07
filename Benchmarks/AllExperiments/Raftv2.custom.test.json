@@ -1,0 +1,12 @@
+{
+  "testName": "Test_Raftv2",
+  "assemblyPath" : "Benchmarks.Protocols.dll",
+  "outputPath" : "..\\..\\out\\Raftv2\\custom",
+  "numEpochs" : 100,
+  "numIterations" : 10000,
+  "maxSteps" : 1000,
+  "abstractionLevel" : "custom",
+  "strategies" : [
+    "QL"
+  ]
+}
