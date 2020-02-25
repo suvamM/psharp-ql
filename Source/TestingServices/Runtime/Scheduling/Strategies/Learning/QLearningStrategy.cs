@@ -80,6 +80,16 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
         private readonly double Gamma;
 
         /// <summary>
+        /// Determines whether QL will use a temperature in Softmax.
+        /// </summary>
+        private readonly bool UseOptimalTemperature;
+
+        /// <summary>
+        /// Optimal temperature used in Softmax
+        /// </summary>
+        private double OptimalTemperature;
+
+        /// <summary>
         /// The op value denoting a true boolean choice.
         /// </summary>
         private readonly ulong TrueChoiceOpValue;
@@ -119,7 +129,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
         /// Initializes a new instance of the <see cref="QLearningStrategy"/> class.
         /// It uses the specified random number generator.
         /// </summary>
-        public QLearningStrategy(AbstractionLevel abstractionLevel, int maxSteps, IRandomNumberGenerator random)
+        public QLearningStrategy(AbstractionLevel abstractionLevel, int maxSteps, IRandomNumberGenerator random, bool useOptimalTemperature)
             : base(maxSteps, random)
         {
             this.AbstractionLevel = abstractionLevel;
@@ -134,6 +144,8 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
             this.PreviousOperation = 0;
             this.LearningRate = 0.3;
             this.Gamma = 0.7;
+            this.UseOptimalTemperature = useOptimalTemperature;
+            this.OptimalTemperature = 1;
             this.TrueChoiceOpValue = ulong.MaxValue;
             this.FalseChoiceOpValue = ulong.MaxValue - 1;
             this.MinIntegerChoiceOpValue = ulong.MaxValue - 2;
@@ -257,11 +269,16 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
         /// </summary>
         private int ChooseQValueIndexFromDistribution(List<double> qValues)
         {
-            double scalingFactor = qValues.Average();
+            this.OptimalTemperature = 1;
+
+            if (this.UseOptimalTemperature)
+            {
+                this.OptimalTemperature = this.ComputeOptimalTemperature(qValues);
+            }
 
             for (int i = 0; i < qValues.Count; i++)
             {
-                qValues[i] = Math.Exp(qValues[i]);
+                qValues[i] = Math.Exp(qValues[i] / this.OptimalTemperature);
             }
 
             double sum = qValues.Sum();
@@ -305,6 +322,16 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
             }
 
             return idx;
+        }
+
+        /// <summary>
+        /// Returns the optimal temperature for a given vector x = {x1, x2, ..., xN}
+        /// </summary>
+        private double ComputeOptimalTemperature (List<double> qValues)
+        {
+            double tempOpti = 1;
+
+            return tempOpti;
         }
 
         /// <summary>
