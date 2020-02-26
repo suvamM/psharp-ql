@@ -90,6 +90,16 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
         private double OptimalTemperature;
 
         /// <summary>
+        /// Used during computation of optimal temperature.
+        /// </summary>
+        private readonly double EnhancementFactor;
+
+        /// <summary>
+        /// Used to terminate computation of optimal temperature.
+        /// </summary>
+        private readonly double StoppingFactor;
+
+        /// <summary>
         /// The op value denoting a true boolean choice.
         /// </summary>
         private readonly ulong TrueChoiceOpValue;
@@ -129,7 +139,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
         /// Initializes a new instance of the <see cref="QLearningStrategy"/> class.
         /// It uses the specified random number generator.
         /// </summary>
-        public QLearningStrategy(AbstractionLevel abstractionLevel, int maxSteps, IRandomNumberGenerator random, bool useOptimalTemperature)
+        public QLearningStrategy(AbstractionLevel abstractionLevel, int maxSteps, IRandomNumberGenerator random)
             : base(maxSteps, random)
         {
             this.AbstractionLevel = abstractionLevel;
@@ -144,8 +154,10 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
             this.PreviousOperation = 0;
             this.LearningRate = 0.3;
             this.Gamma = 0.7;
-            this.UseOptimalTemperature = useOptimalTemperature;
+            this.UseOptimalTemperature = true;
             this.OptimalTemperature = 1;
+            this.EnhancementFactor = 1;
+            this.StoppingFactor = 0.0001;
             this.TrueChoiceOpValue = ulong.MaxValue;
             this.FalseChoiceOpValue = ulong.MaxValue - 1;
             this.MinIntegerChoiceOpValue = ulong.MaxValue - 2;
@@ -329,9 +341,48 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
         /// </summary>
         private double ComputeOptimalTemperature (List<double> qValues)
         {
-            double tempOpti = 1;
+            double tOpt;
+            List<double> zValues = new List<double>();
+            double qMin = qValues.Min();
 
-            return tempOpti;
+            for (int i = 0; i < qValues.Count; i++)
+            {
+                zValues.Add(qValues[i] + (2 * qMin) + 0.01);
+            }
+
+            double sum = zValues.Sum();
+
+           for (int i = 0; i < zValues.Count; i++)
+            {
+                zValues[i] /= sum;
+            }
+
+            double hz = 0;
+            for (int i = 0; i < zValues.Count; i++)
+            {
+                hz += -1 * (zValues[i] * Math.Log(zValues[i]));
+            }
+
+            double t0 = 1;
+            do
+            {
+                tOpt = t0;
+
+                double numerator = 0;
+                double denominator1 = 0;
+                double denominator2 = 0;
+
+                for (int i = 0; i < zValues.Count; i++)
+                {
+                    numerator += zValues[i] * Math.Exp(zValues[i] / tOpt);
+                    denominator1 += Math.Exp(zValues[i] / tOpt);
+                }
+
+                denominator2 = Math.Log(denominator1) - (hz / (1 + this.EnhancementFactor));
+            }
+            while (Math.Abs(tOpt - t0) < this.StoppingFactor);
+
+            return tOpt;
         }
 
         /// <summary>
