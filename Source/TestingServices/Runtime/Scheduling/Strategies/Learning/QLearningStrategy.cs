@@ -136,6 +136,11 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
         private int Epochs;
 
         /// <summary>
+        /// Resets all QValues after this many iterations.
+        /// </summary>
+        private readonly int ResetQValuesThreshold;
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="QLearningStrategy"/> class.
         /// It uses the specified random number generator.
         /// </summary>
@@ -157,7 +162,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
             this.UseOptimalTemperature = true;
             this.OptimalTemperature = 1;
             this.EnhancementFactor = 1;
-            this.StoppingFactor = 0.0001;
+            this.StoppingFactor = 0.00001;
             this.TrueChoiceOpValue = ulong.MaxValue;
             this.FalseChoiceOpValue = ulong.MaxValue - 1;
             this.MinIntegerChoiceOpValue = ulong.MaxValue - 2;
@@ -165,6 +170,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
             this.FailureInjectionReward = -1000;
             this.BasicActionReward = -1;
             this.Epochs = 0;
+            this.ResetQValuesThreshold = 10000;
         }
 
         /// <summary>
@@ -283,28 +289,12 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
         {
             this.OptimalTemperature = 1;
 
-            if (this.UseOptimalTemperature)
-            {
-                this.OptimalTemperature = this.ComputeOptimalTemperature(qValues);
-            }
-
-            for (int i = 0; i < qValues.Count; i++)
-            {
-                qValues[i] = Math.Exp(qValues[i] / this.OptimalTemperature);
-            }
-
-            double sum = qValues.Sum();
-
-            for (int i = 0; i < qValues.Count; i++)
-            {
-                qValues[i] /= sum;
-            }
-
-            sum = 0;
+            List<double> probs = this.ComputeProbabilityDistribution(qValues);
+            double sum = 0;
 
             // First, change the shape of the distribution probability array to be cumulative.
             // For example, instead of [0.1, 0.2, 0.3, 0.4], we get [0.1, 0.3, 0.6, 1.0].
-            var cumulative = qValues.Select(c =>
+            var cumulative = probs.Select(c =>
             {
                 var result = c + sum;
                 sum += c;
@@ -339,50 +329,94 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
         /// <summary>
         /// Returns the optimal temperature for a given vector x = {x1, x2, ..., xN}
         /// </summary>
-        private double ComputeOptimalTemperature (List<double> qValues)
+        private List<double> ComputeProbabilityDistribution (List<double> qValues)
         {
-            double tOpt;
-            List<double> zValues = new List<double>();
-            double qMin = qValues.Min();
-
-            for (int i = 0; i < qValues.Count; i++)
+            // Use algorithm by He et. al. to scale input vector and return probabilities
+            // Link to paper: http://ir.nsfc.gov.cn/paperDownload/ZD4786211.pdf
+            if (this.UseOptimalTemperature)
             {
-                zValues.Add(qValues[i] + (2 * qMin) + 0.01);
-            }
+                double tOpt;
+                List<double> zValues = new List<double>();
 
-            double sum = zValues.Sum();
+                // Calculate z-values corresponding to the q-values
+                double qMin = qValues.Min();
 
-           for (int i = 0; i < zValues.Count; i++)
-            {
-                zValues[i] /= sum;
-            }
+                for (int i = 0; i < qValues.Count; i++)
+                {
+                    zValues.Add(qValues[i] + (2 * Math.Abs(qMin)) + 0.01);
+                }
 
-            double hz = 0;
-            for (int i = 0; i < zValues.Count; i++)
-            {
-                hz += -1 * (zValues[i] * Math.Log(zValues[i]));
-            }
-
-            double t0 = 1;
-            do
-            {
-                tOpt = t0;
-
-                double numerator = 0;
-                double denominator1 = 0;
-                double denominator2 = 0;
+                double sum = zValues.Sum();
 
                 for (int i = 0; i < zValues.Count; i++)
                 {
-                    numerator += zValues[i] * Math.Exp(zValues[i] / tOpt);
-                    denominator1 += Math.Exp(zValues[i] / tOpt);
+                    zValues[i] /= sum;
                 }
 
-                denominator2 = Math.Log(denominator1) - (hz / (1 + this.EnhancementFactor));
-            }
-            while (Math.Abs(tOpt - t0) < this.StoppingFactor);
+                // compute entropy
+                double hz = 0;
+                for (int i = 0; i < zValues.Count; i++)
+                {
+                    hz += -1.0 * (zValues[i] * Math.Log(zValues[i]));
+                }
 
-            return tOpt;
+                double t0 = 1;
+                do
+                {
+                    tOpt = t0;
+
+                    double numerator = 0;
+                    double denominator1 = 0;
+                    double denominator2 = 0;
+
+                    for (int i = 0; i < zValues.Count; i++)
+                    {
+                        numerator += zValues[i] * Math.Exp(zValues[i] / tOpt);
+                        denominator1 += Math.Exp(zValues[i] / tOpt);
+                    }
+
+                    denominator2 = Math.Log(denominator1) - (hz / (1 + this.EnhancementFactor));
+
+                    t0 = numerator / (denominator1 * denominator2);
+                }
+                while (Math.Abs(tOpt - t0) >= this.StoppingFactor);
+
+                // Probabilities using normalized q-values
+                List<double> normalizedProbs = new List<double>();
+                for (int i = 0; i < qValues.Count; i++)
+                {
+                    normalizedProbs.Add(Math.Exp(zValues[i] / tOpt));
+                }
+
+                sum = normalizedProbs.Sum();
+
+                for (int i = 0; i < normalizedProbs.Count; i++)
+                {
+                    normalizedProbs[i] /= sum;
+                }
+
+                return normalizedProbs;
+            }
+
+            // apply Softmax on qValues directly without scaling
+            else
+            {
+                List<double> origProbs = new List<double>();
+
+                for (int i = 0; i < qValues.Count; i++)
+                {
+                    origProbs.Add(Math.Exp(qValues[i]));
+                }
+
+                double sum = origProbs.Sum();
+
+                for (int i = 0; i < origProbs.Count; i++)
+                {
+                    origProbs[i] /= sum;
+                }
+
+                return origProbs;
+            }
         }
 
         /// <summary>
@@ -513,7 +547,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
             this.Epochs++;
 
             // When using the /explore flag, reset all learned data on finding a bug.
-            if (this.IsBugFound)
+            if (this.IsBugFound || this.Epochs >= this.ResetQValuesThreshold)
             {
                 this.ResetQLearning();
             }
