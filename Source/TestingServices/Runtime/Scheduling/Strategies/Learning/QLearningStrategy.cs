@@ -164,7 +164,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
             this.FailureInjectionReward = -1000;
             this.BasicActionReward = -1;
             this.Epochs = 0;
-            this.ResetQValuesThreshold = 10000;
+            this.ResetQValuesThreshold = 1000;
         }
 
         /// <summary>
@@ -541,6 +541,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
             // When using the /explore flag, reset all learned data on finding a bug.
             if (this.IsBugFound || (this.Epochs % this.ResetQValuesThreshold == 0))
             {
+                Console.WriteLine("Resetting...");
                 this.ResetQLearning();
             }
 
