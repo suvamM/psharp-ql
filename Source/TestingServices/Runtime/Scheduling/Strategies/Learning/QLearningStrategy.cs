@@ -319,7 +319,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
         }
 
         /// <summary>
-        /// Returns the optimal temperature for a given vector x = {x1, x2, ..., xN}
+        /// Returns a probability distribution corresponding to an input vector using Softmax
         /// </summary>
         private List<double> ComputeProbabilityDistribution (List<double> qValues)
         {
