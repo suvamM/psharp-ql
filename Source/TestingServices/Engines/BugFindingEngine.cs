@@ -279,7 +279,7 @@ namespace Microsoft.PSharp.TestingServices
 
             // Logger used to intercept the program output if no custom logger
             // is installed and if verbosity is turned off.
-            InMemoryLogger runtimeLogger = null;
+            NulLogger runtimeLogger = null;
 
             // Gets a handle to the standard output and error streams.
             var stdOut = Console.Out;
@@ -312,7 +312,7 @@ namespace Microsoft.PSharp.TestingServices
                 // the standard output and error streams.
                 if (!this.Configuration.IsVerbose)
                 {
-                    runtimeLogger = new InMemoryLogger();
+                    runtimeLogger = new NulLogger();
                     runtime.SetLogger(runtimeLogger);
 
                     var writer = new LogWriter(new NulLogger());
@@ -365,11 +365,13 @@ namespace Microsoft.PSharp.TestingServices
 
                 if (this.TestReport.NumOfFoundBugs > 0)
                 {
+                    /*
                     if (runtimeLogger != null)
                     {
                         this.ReadableTrace = runtimeLogger.ToString();
                         this.ReadableTrace += this.TestReport.GetText(this.Configuration, "<StrategyLog>");
                     }
+                    */
 
                     this.BugTrace = runtime.BugTrace;
                     this.ConstructReproducableTrace(runtime);
@@ -397,7 +399,7 @@ namespace Microsoft.PSharp.TestingServices
                 }
 
                 // Cleans up the runtime before the next iteration starts.
-                runtimeLogger?.Dispose();
+                // runtimeLogger?.Dispose();
                 runtime?.Dispose();
             }
         }
