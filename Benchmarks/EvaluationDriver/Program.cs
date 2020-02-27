@@ -67,7 +67,6 @@ namespace EvaluationDriver
 
             int numBuggyEpochs = 0;
             double bugFraction = 0.0;
-            double avgIterationsToBug = 0;
 
             var iterations = new List<int>();
 
@@ -88,8 +87,11 @@ namespace EvaluationDriver
                     p.StartInfo.Arguments += $"-i:{configuration.NumIterations} ";
                     p.StartInfo.Arguments += $"-max-steps:{configuration.MaxSteps}:{configuration.MaxSteps} ";
                     p.StartInfo.Arguments += $"-abstraction-level:{configuration.AbstractionLevel} ";
-                    p.StartInfo.Arguments += $"-timeout:{configuration.Timeout}";
+                    p.StartInfo.Arguments += $"-timeout:{configuration.Timeout} ";
                     p.StartInfo.Arguments += $"-sch:{schedulerType} ";
+                    p.StartInfo.Arguments += $"-explore";
+
+                    Console.WriteLine("Command: " + p.StartInfo.Arguments);
 
                     // Start the child process.
                     p.Start();
@@ -99,11 +101,14 @@ namespace EvaluationDriver
                     // Read the output stream first and then wait.
                     output = p.StandardOutput.ReadToEnd();
                     p.WaitForExit();
+
+                    Console.WriteLine(output);
                 }
 
                 if (output.Contains("Found 0 bugs"))
                 {
-                    continue;
+                    Console.WriteLine($"... {schedulerName} found 0 bugs");
+                    iterations.Add(0);
                 }
                 else
                 {
@@ -114,10 +119,10 @@ namespace EvaluationDriver
                         string[] words = lines[j].Trim().Split(' ');
                         for (int k = 0; k < words.Length; k++)
                         {
-                            if (words[k] == "Explored")
+                            if (words[k] == "Found")
                             {
                                 iterations.Add(Convert.ToInt32(words[k + 1]));
-                                Console.WriteLine($"... {schedulerName} found bug in iteration {Convert.ToInt32(words[k + 1])}");
+                                Console.WriteLine($"... {schedulerName} found {Convert.ToInt32(words[k + 1])} bugs");
                                 break;
                             }
                         }
@@ -125,16 +130,9 @@ namespace EvaluationDriver
                 }
             }
 
-            bugFraction = (double)numBuggyEpochs / (double)configuration.NumEpochs;
-            if (iterations.Count > 0)
-            {
-                avgIterationsToBug = iterations.Average();
-            }
-
-            double variance = iterations.Select(val => Math.Pow(val - avgIterationsToBug, 2)).Sum();
-            double iterStdDev = Math.Sqrt(variance / iterations.Count);
-
-            return new Result(schedulerName, numBuggyEpochs, bugFraction, avgIterationsToBug, iterStdDev);
+            bugFraction = (double)iterations[0] / (double)configuration.NumIterations;
+            
+            return new Result(schedulerName, bugFraction);
         }
 
         static void WriteResults(Result[] results, Configuration configuration)
@@ -168,25 +166,12 @@ namespace EvaluationDriver
             internal string SchedulerName { get; set; }
 
             [JsonProperty]
-            internal int NumBuggyEpochs { get; set; }
-
-            [JsonProperty]
             internal double BugFraction { get; set; }
 
-            [JsonProperty]
-            internal double AvgIterationsToBug { get; set; }
-
-            [JsonProperty]
-            internal double IterStdDev { get; set; }
-
-            internal Result(string schedulerName, int numBuggyEpochs, double bugFraction,
-                double avgIterationsToBug, double iterStdDev)
+            internal Result(string schedulerName, double bugFraction)
             {
                 this.SchedulerName = schedulerName;
-                this.NumBuggyEpochs = numBuggyEpochs;
                 this.BugFraction = bugFraction;
-                this.AvgIterationsToBug = avgIterationsToBug;
-                this.IterStdDev = iterStdDev;
             }
         }
 
@@ -232,6 +217,7 @@ namespace EvaluationDriver
                 Console.WriteLine($"Max steps: {this.MaxSteps}");
                 Console.WriteLine($"Abstraction level: {this.AbstractionLevel}");
                 Console.WriteLine($"Timeout: {this.Timeout}");
+                Console.WriteLine("Explore");
 
                 string strategies = string.Empty;
                 for (int idx = 0; idx < this.Strategies.Length; idx++)
