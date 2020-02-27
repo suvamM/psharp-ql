@@ -85,11 +85,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
         private readonly bool UseOptimalTemperature;
 
         /// <summary>
-        /// Optimal temperature used in Softmax
-        /// </summary>
-        private double OptimalTemperature;
-
-        /// <summary>
         /// Used during computation of optimal temperature.
         /// </summary>
         private readonly double EnhancementFactor;
@@ -160,7 +155,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
             this.LearningRate = 0.3;
             this.Gamma = 0.7;
             this.UseOptimalTemperature = true;
-            this.OptimalTemperature = 1;
             this.EnhancementFactor = 1;
             this.StoppingFactor = 0.00001;
             this.TrueChoiceOpValue = ulong.MaxValue;
@@ -287,8 +281,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
         /// </summary>
         private int ChooseQValueIndexFromDistribution(List<double> qValues)
         {
-            this.OptimalTemperature = 1;
-
             List<double> probs = this.ComputeProbabilityDistribution(qValues);
             double sum = 0;
 
@@ -583,7 +575,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
                 if (node.Next.Next is null && this.IsBugFound)
                 {
                     reward = this.BugStateReward;
-                    Console.WriteLine($"==================> ({state}) Reward of {nextOp} ({nextState}) is {reward} [bug]");
+                    //Console.WriteLine($"==================> ({state}) Reward of {nextOp} ({nextState}) is {reward} [bug]");
                 }
                 else
                 {
@@ -611,6 +603,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
                 idx++;
             }
 
+            /*
             if (this.IsBugFound || this.Epochs == 10 || this.Epochs == 20 || this.Epochs == 40 || this.Epochs == 80 ||
                 this.Epochs == 160 || this.Epochs == 320 || this.Epochs == 640 || this.Epochs == 1280 || this.Epochs == 2560 ||
                 this.Epochs == 5120 || this.Epochs == 10240 || this.Epochs == 20480 || this.Epochs == 40960 ||
@@ -623,6 +616,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
                 Console.WriteLine($"==================> #{this.Epochs} Custom States (size: {this.CustomHashedStates.Count})");
                 Console.WriteLine($"==================> #{this.Epochs} Full States (size: {this.FullHashedStates.Count})");
             }
+            */
         }
 
         /// <summary>
