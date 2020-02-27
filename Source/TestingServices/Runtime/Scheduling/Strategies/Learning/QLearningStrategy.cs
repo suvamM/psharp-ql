@@ -154,9 +154,9 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
             this.PreviousOperation = 0;
             this.LearningRate = 0.3;
             this.Gamma = 0.7;
-            this.UseOptimalTemperature = true;
+            this.UseOptimalTemperature = false;
             this.EnhancementFactor = 1;
-            this.StoppingFactor = 0.00001;
+            this.StoppingFactor = 0.00000000001;
             this.TrueChoiceOpValue = ulong.MaxValue;
             this.FalseChoiceOpValue = ulong.MaxValue - 1;
             this.MinIntegerChoiceOpValue = ulong.MaxValue - 2;
@@ -539,7 +539,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
             this.Epochs++;
 
             // When using the /explore flag, reset all learned data on finding a bug.
-            if (this.IsBugFound || this.Epochs >= this.ResetQValuesThreshold)
+            if (this.IsBugFound || (this.Epochs % this.ResetQValuesThreshold == 0))
             {
                 this.ResetQLearning();
             }

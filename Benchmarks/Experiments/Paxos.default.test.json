@@ -2,7 +2,7 @@
   "testName": "Test_Paxos",
   "assemblyPath" : "Benchmarks.Protocols.dll",
   "outputPath" : "..\\..\\out\\Paxos\\default",
-  "numIterations" : 1000000,
+  "numIterations" : 100000,
   "maxSteps" : 1000,
   "abstractionLevel" : "default",
   "timeout" : 0,
