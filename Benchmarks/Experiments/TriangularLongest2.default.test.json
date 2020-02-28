@@ -2,7 +2,7 @@
   "testName": "Test_Triangular_Longest_2",
   "assemblyPath" : "Benchmarks.Threading.dll",
   "outputPath" : "..\\..\\out\\TriangularLongest2\\default",
-  "numIterations" : 100000,
+  "numIterations" : 20000,
   "maxSteps" : 1000,
   "abstractionLevel" : "default",
   "timeout" : 0,

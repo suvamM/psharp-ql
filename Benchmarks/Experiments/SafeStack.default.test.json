@@ -2,7 +2,7 @@
   "testName": "Test_SafeStack",
   "assemblyPath" : "Benchmarks.Threading.dll",
   "outputPath" : "..\\..\\out\\SafeStack\\default",
-  "numIterations" : 100000,
+  "numIterations" : 20000,
   "maxSteps" : 1000,
   "abstractionLevel" : "default",
   "timeout" : 0,

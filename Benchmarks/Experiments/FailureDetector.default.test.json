@@ -2,7 +2,7 @@
   "testName": "Test_FailureDetector",
   "assemblyPath" : "Benchmarks.Protocols.dll",
   "outputPath" : "..\\..\\out\\FailureDetector\\default",
-  "numIterations" : 100000,
+  "numIterations" : 20000,
   "maxSteps" : 200,
   "abstractionLevel" : "default",
   "timeout" : 0,

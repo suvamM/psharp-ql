@@ -2,7 +2,7 @@
   "testName": "Test_Raftv1",
   "assemblyPath" : "Benchmarks.Protocols.dll",
   "outputPath" : "..\\..\\out\\Raftv1\\default",
-  "numIterations" : 100000,
+  "numIterations" : 20000,
   "maxSteps" : 1000,
   "abstractionLevel" : "default",
   "timeout" : 0,
