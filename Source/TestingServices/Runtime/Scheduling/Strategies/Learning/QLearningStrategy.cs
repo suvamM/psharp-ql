@@ -154,9 +154,9 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
             this.PreviousOperation = 0;
             this.LearningRate = 0.3;
             this.Gamma = 0.7;
-            this.UseOptimalTemperature = false;
-            this.EnhancementFactor = 1;
-            this.StoppingFactor = 0.00000000001;
+            this.UseOptimalTemperature = true;
+            this.EnhancementFactor = 1.0;
+            this.StoppingFactor = 0.00001;
             this.TrueChoiceOpValue = ulong.MaxValue;
             this.FalseChoiceOpValue = ulong.MaxValue - 1;
             this.MinIntegerChoiceOpValue = ulong.MaxValue - 2;
