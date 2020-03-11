@@ -1,13 +1,22 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using Microsoft.PSharp;
+using Microsoft.PSharp.Timers;
 
-namespace Benchmarks.Actors
+namespace Benchmarks.Protocols
 {
-    internal class CoffeMachineActors
+    internal class CoffeeMachineActors
     {
+        public static void Execute(IMachineRuntime runtime)
+        {
+            runtime.RegisterMonitor(typeof(LivenessMonitor));
+            MachineId driver = runtime.CreateMachine(typeof(FailoverDriver), new FailoverDriver.ConfigEvent(false));
+            runtime.SendEvent(driver, new FailoverDriver.StartTestEvent());
+        }
+
         internal class CoffeeMachine : Machine
         {
             private MachineId Client;
@@ -59,9 +68,9 @@ namespace Benchmarks.Actors
             [OnEventDoAction(typeof(TerminateEvent), nameof(OnTerminate))]
             private class Init : MachineState { }
 
-            private void OnInit(Event e)
+            private void OnInit()
             {
-                if (e is ConfigEvent configEvent)
+                if (this.ReceivedEvent is ConfigEvent configEvent)
                 {
                     this.WriteLine("initializing...");
                     this.Client = configEvent.Client;
@@ -69,7 +78,7 @@ namespace Benchmarks.Actors
                     // register this class as a client of the sensors.
                     this.Send(this.Sensors, new RegisterClientEvent(this.Id));
                     // Use PushState so that TerminateEvent can be handled at any time in all the following states.
-                    this.RaisePushStateEvent<CheckSensors>();
+                    this.Push<CheckSensors>();
                 }
             }
 
@@ -89,9 +98,9 @@ namespace Benchmarks.Actors
                 this.Send(this.Sensors, new ReadPowerButtonEvent());
             }
 
-            private void OnPowerButton(Event e)
+            private void OnPowerButton()
             {
-                if (e is PowerButtonEvent pe)
+                if (this.ReceivedEvent is PowerButtonEvent pe)
                 {
                     if (!pe.PowerOn)
                     {
@@ -112,56 +121,56 @@ namespace Benchmarks.Actors
                 }
             }
 
-            private void OnWaterLevel(Event e)
+            private void OnWaterLevel()
             {
-                if (e is WaterLevelEvent we)
+                if (this.ReceivedEvent is WaterLevelEvent we)
                 {
                     this.WaterLevel = we.WaterLevel;
                     this.WriteLine("Water level is {0} %", (int)this.WaterLevel.Value);
                     if ((int)this.WaterLevel.Value <= 0)
                     {
                         this.WriteLine("Coffee machine is out of water");
-                        this.RaiseGotoStateEvent<RefillRequired>();
+                        this.Goto<RefillRequired>();
                     }
                 }
 
                 this.CheckInitialState();
             }
 
-            private void OnHopperLevel(Event e)
+            private void OnHopperLevel()
             {
-                if (e is HopperLevelEvent he)
+                if (this.ReceivedEvent is HopperLevelEvent he)
                 {
                     this.HopperLevel = he.HopperLevel;
                     this.WriteLine("Hopper level is {0} %", (int)this.HopperLevel.Value);
                     if ((int)this.HopperLevel.Value == 0)
                     {
                         this.WriteLine("Coffee machine is out of coffee beans");
-                        this.RaiseGotoStateEvent<RefillRequired>();
+                        this.Goto<RefillRequired>();
                     }
                 }
 
                 this.CheckInitialState();
             }
 
-            private void OnDoorOpen(Event e)
+            private void OnDoorOpen()
             {
-                if (e is DoorOpenEvent de)
+                if (this.ReceivedEvent is DoorOpenEvent de)
                 {
                     this.DoorOpen = de.Open;
                     if (this.DoorOpen.Value != false)
                     {
                         this.WriteLine("Cannot safely operate coffee machine with the door open!");
-                        this.RaiseGotoStateEvent<Error>();
+                        this.Goto<Error>();
                     }
                 }
 
                 this.CheckInitialState();
             }
 
-            private void OnPortaFilterCoffeeLevel(Event e)
+            private void OnPortaFilterCoffeeLevel()
             {
-                if (e is PortaFilterCoffeeLevelEvent pe)
+                if (this.ReceivedEvent is PortaFilterCoffeeLevelEvent pe)
                 {
                     this.PortaFilterCoffeeLevel = pe.CoffeeLevel;
                     if (pe.CoffeeLevel > 0)
@@ -179,7 +188,7 @@ namespace Benchmarks.Actors
             {
                 if (this.WaterLevel.HasValue && this.HopperLevel.HasValue && this.DoorOpen.HasValue && this.PortaFilterCoffeeLevel.HasValue)
                 {
-                    this.RaiseGotoStateEvent<HeatingWater>();
+                    this.Goto<HeatingWater>();
                 }
             }
 
@@ -208,12 +217,12 @@ namespace Benchmarks.Actors
                     this.Send(this.Sensors, new WaterHeaterButtonEvent(false));
                 }
 
-                this.RaiseGotoStateEvent<Ready>();
+                this.Goto<Ready>();
             }
 
-            private void MonitorWaterTemperature(Event e)
+            private void MonitorWaterTemperature()
             {
-                if (e is WaterTemperatureEvent value)
+                if (this.ReceivedEvent is WaterTemperatureEvent value)
                 {
                     this.WaterTemperature = value.WaterTemperature;
 
@@ -237,7 +246,7 @@ namespace Benchmarks.Actors
             }
 
             [OnEntry(nameof(OnReady))]
-            [IgnoreEvents(typeof(WaterLevelEvent))]
+            [IgnoreEvents(typeof(WaterLevelEvent), typeof(WaterHotEvent))]
             [OnEventGotoState(typeof(MakeCoffeeEvent), typeof(MakingCoffee))]
             private class Ready : MachineState { }
 
@@ -250,9 +259,9 @@ namespace Benchmarks.Actors
             [OnEntry(nameof(OnMakeCoffee))]
             private class MakingCoffee : MachineState { }
 
-            private void OnMakeCoffee(Event e)
+            private void OnMakeCoffee()
             {
-                if (e is MakeCoffeeEvent mc)
+                if (this.ReceivedEvent is MakeCoffeeEvent mc)
                 {
                     this.Monitor<LivenessMonitor>(new LivenessMonitor.BusyEvent());
                     this.WriteLine($"Coffee requested, shots={mc.Shots}");
@@ -265,7 +274,7 @@ namespace Benchmarks.Actors
                     // turn on shot button for desired time
                     // dump the grinds, while checking for error conditions
                     // like out of water or coffee beans.
-                    this.RaiseGotoStateEvent<GrindingBeans>();
+                    this.Goto<GrindingBeans>();
                 }
             }
 
@@ -286,15 +295,15 @@ namespace Benchmarks.Actors
                 this.Send(this.Sensors, new ReadHopperLevelEvent());
             }
 
-            private void MonitorPortaFilter(Event e)
+            private void MonitorPortaFilter()
             {
-                if (e is PortaFilterCoffeeLevelEvent pe)
+                if (this.ReceivedEvent is PortaFilterCoffeeLevelEvent pe)
                 {
                     if (pe.CoffeeLevel >= 100)
                     {
                         this.WriteLine("PortaFilter is full");
                         this.Send(this.Sensors, new GrinderButtonEvent(false));
-                        this.RaiseGotoStateEvent<MakingShots>();
+                        this.Goto<MakingShots>();
                     }
                     else
                     {
@@ -307,9 +316,9 @@ namespace Benchmarks.Actors
                 }
             }
 
-            private void MonitorHopperLevel(Event e)
+            private void MonitorHopperLevel()
             {
-                if (e is HopperLevelEvent he)
+                if (this.ReceivedEvent is HopperLevelEvent he)
                 {
                     if (he.HopperLevel == 0)
                     {
@@ -326,7 +335,7 @@ namespace Benchmarks.Actors
             {
                 this.WriteLine("hopper is empty!");
                 this.Send(this.Sensors, new GrinderButtonEvent(false));
-                this.RaiseGotoStateEvent<RefillRequired>();
+                this.Goto<RefillRequired>();
             }
 
             [OnEntry(nameof(OnMakingShots))]
@@ -357,7 +366,7 @@ namespace Benchmarks.Actors
                         this.Assert(false, "Made the wrong number of shots");
                     }
 
-                    this.RaiseGotoStateEvent<Cleanup>();
+                    this.Goto<Cleanup>();
                 }
                 else
                 {
@@ -373,12 +382,12 @@ namespace Benchmarks.Actors
                 this.WriteLine("Water is empty!");
                 // turn off the water pump
                 this.Send(this.Sensors, new ShotButtonEvent(false));
-                this.RaiseGotoStateEvent<RefillRequired>();
+                this.Goto<RefillRequired>();
             }
 
-            private void OnMonitorWaterLevel(Event e)
+            private void OnMonitorWaterLevel()
             {
-                if (e is WaterLevelEvent we)
+                if (this.ReceivedEvent is WaterLevelEvent we)
                 {
                     if (we.WaterLevel <= 0)
                     {
@@ -401,7 +410,7 @@ namespace Benchmarks.Actors
                     this.Send(this.Client, new CoffeeCompletedEvent());
                 }
 
-                this.RaiseGotoStateEvent<Ready>();
+                this.Goto<Ready>();
             }
 
             [OnEntry(nameof(OnRefillRequired))]
@@ -434,17 +443,18 @@ namespace Benchmarks.Actors
                 this.WriteLine("Coffee machine needs fixing!");
             }
 
-            private void OnTerminate(Event e)
+            private void OnTerminate()
             {
-                if (e is TerminateEvent te)
+                if (this.ReceivedEvent is TerminateEvent te)
                 {
                     this.WriteLine("Coffee Machine Terminating...");
                     this.Send(this.Sensors, new PowerButtonEvent(false));
-                    this.RaiseHaltEvent();
+                    this.OnHalt();
+                    this.Raise(new Halt());
                 }
             }
 
-            protected override Task OnHaltAsync(Event e)
+            protected override void OnHalt()
             {
                 this.Monitor<LivenessMonitor>(new LivenessMonitor.IdleEvent());
                 this.WriteLine("#################################################################");
@@ -455,8 +465,6 @@ namespace Benchmarks.Actors
                 {
                     this.Send(this.Client, new HaltedEvent());
                 }
-
-                return base.OnHaltAsync(e);
             }
 
             private void WriteLine(string format, params object[] args)
@@ -505,9 +513,9 @@ namespace Benchmarks.Actors
             [OnEventGotoState(typeof(StartTestEvent), typeof(Test))]
             internal class Init : MachineState { }
 
-            internal void OnInit(Event e)
+            internal void OnInit()
             {
-                if (e is ConfigEvent ce)
+                if (this.ReceivedEvent is ConfigEvent ce)
                 {
                     this.RunForever = ce.RunForever;
                 }
@@ -519,6 +527,7 @@ namespace Benchmarks.Actors
             [OnEntry(nameof(OnStartTest))]
             [OnEventDoAction(typeof(TimerElapsedEvent), nameof(HandleTimer))]
             [OnEventGotoState(typeof(CoffeeMachine.CoffeeCompletedEvent), typeof(Stop))]
+            [IgnoreEvents(typeof(CoffeeMachine.HaltedEvent))]
             internal class Test : MachineState { }
 
             internal void OnStartTest()
@@ -540,18 +549,22 @@ namespace Benchmarks.Actors
 
             private void HandleTimer()
             {
-                this.RaiseGotoStateEvent<Stop>();
+                this.Goto<Stop>();
             }
 
-            internal void OnStopTest(Event e)
+            internal void OnStopTest()
             {
-                if (this.HaltTimer != null)
+                try
                 {
-                    this.StopTimer(this.HaltTimer);
-                    this.HaltTimer = null;
+                    if (this.HaltTimer != null)
+                    {
+                        this.StopTimer(this.HaltTimer);
+                        this.HaltTimer = null;
+                    }
                 }
+                catch (NullReferenceException) { }
 
-                if (e is CoffeeMachine.CoffeeCompletedEvent ce)
+                if (this.ReceivedEvent is CoffeeMachine.CoffeeCompletedEvent ce)
                 {
                     if (ce.Error)
                     {
@@ -564,7 +577,7 @@ namespace Benchmarks.Actors
                         this.WriteLine("CoffeeMachine completed the job.");
                     }
 
-                    this.RaiseGotoStateEvent<Stopped>();
+                    this.Goto<Stopped>();
                 }
                 else
                 {
@@ -586,7 +599,7 @@ namespace Benchmarks.Actors
             internal void OnHalted()
             {
                 // ok, the CoffeeMachine really is halted now, so we can go to the stopped state.
-                this.RaiseGotoStateEvent<Stopped>();
+                this.Goto<Stopped>();
             }
 
             [OnEntry(nameof(OnStopped))]
@@ -598,11 +611,11 @@ namespace Benchmarks.Actors
                 {
                     this.Iterations += 1;
                     // Run another CoffeeMachine instance!
-                    this.RaiseGotoStateEvent<Test>();
+                    this.Goto<Test>();
                 }
                 else
                 {
-                    this.RaiseHaltEvent();
+                    this.Raise(new Halt());
                 }
             }
 
@@ -635,12 +648,12 @@ namespace Benchmarks.Actors
             [Cold]
             [OnEventGotoState(typeof(BusyEvent), typeof(Busy))]
             [IgnoreEvents(typeof(IdleEvent))]
-            private class Idle : MachineState { }
+            private class Idle : MonitorState { }
 
             [Hot]
             [OnEventGotoState(typeof(IdleEvent), typeof(Idle))]
             [IgnoreEvents(typeof(BusyEvent))]
-            private class Busy : MachineState { }
+            private class Busy : MonitorState { }
         }
 
         internal class RegisterClientEvent : Event
@@ -753,21 +766,6 @@ namespace Benchmarks.Actors
         /// happens with the coffee machine brain.  So this concept is modelled with a simple stateful
         /// dictionary and the sensor states are modelled as simple floating point values.
         /// </summary>
-        [OnEventDoAction(typeof(RegisterClientEvent), nameof(OnRegisterClient))]
-        [OnEventDoAction(typeof(ReadPowerButtonEvent), nameof(OnReadPowerButton))]
-        [OnEventDoAction(typeof(ReadWaterLevelEvent), nameof(OnReadWaterLevel))]
-        [OnEventDoAction(typeof(ReadHopperLevelEvent), nameof(OnReadHopperLevel))]
-        [OnEventDoAction(typeof(ReadWaterTemperatureEvent), nameof(OnReadWaterTemperature))]
-        [OnEventDoAction(typeof(ReadPortaFilterCoffeeLevelEvent), nameof(OnReadPortaFilterCoffeeLevel))]
-        [OnEventDoAction(typeof(ReadDoorOpenEvent), nameof(OnReadDoorOpen))]
-        [OnEventDoAction(typeof(PowerButtonEvent), nameof(OnPowerButton))]
-        [OnEventDoAction(typeof(WaterHeaterButtonEvent), nameof(OnWaterHeaterButton))]
-        [OnEventDoAction(typeof(GrinderButtonEvent), nameof(OnGrinderButton))]
-        [OnEventDoAction(typeof(ShotButtonEvent), nameof(OnShotButton))]
-        [OnEventDoAction(typeof(DumpGrindsButtonEvent), nameof(OnDumpGrindsButton))]
-        [OnEventDoAction(typeof(HeaterTimerEvent), nameof(MonitorWaterTemperature))]
-        [OnEventDoAction(typeof(GrinderTimerEvent), nameof(MonitorGrinder))]
-        [OnEventDoAction(typeof(ShotTimerEvent), nameof(MonitorShot))]
         internal class MockSensors : Machine
         {
             private MachineId Client;
@@ -797,29 +795,34 @@ namespace Benchmarks.Actors
                 }
             }
 
-            internal void OnRegisterClient(Event e)
+            internal void OnRegisterClient()
             {
-                if (e is RegisterClientEvent re)
+                if (this.ReceivedEvent is RegisterClientEvent re)
                 {
                     this.Client = re.Sender;
                 }
             }
 
-            internal class HeaterTimerEvent : TimerElapsedEvent
-            {
-            }
+            [Start]
+            [OnEntry(nameof(OnInitialize))]
+            [OnEventDoAction(typeof(RegisterClientEvent), nameof(OnRegisterClient))]
+            [OnEventDoAction(typeof(ReadPowerButtonEvent), nameof(OnReadPowerButton))]
+            [OnEventDoAction(typeof(ReadWaterLevelEvent), nameof(OnReadWaterLevel))]
+            [OnEventDoAction(typeof(ReadHopperLevelEvent), nameof(OnReadHopperLevel))]
+            [OnEventDoAction(typeof(ReadWaterTemperatureEvent), nameof(OnReadWaterTemperature))]
+            [OnEventDoAction(typeof(ReadPortaFilterCoffeeLevelEvent), nameof(OnReadPortaFilterCoffeeLevel))]
+            [OnEventDoAction(typeof(ReadDoorOpenEvent), nameof(OnReadDoorOpen))]
+            [OnEventDoAction(typeof(PowerButtonEvent), nameof(OnPowerButton))]
+            [OnEventDoAction(typeof(WaterHeaterButtonEvent), nameof(OnWaterHeaterButton))]
+            [OnEventDoAction(typeof(GrinderButtonEvent), nameof(OnGrinderButton))]
+            [OnEventDoAction(typeof(ShotButtonEvent), nameof(OnShotButton))]
+            [OnEventDoAction(typeof(DumpGrindsButtonEvent), nameof(OnDumpGrindsButton))]
+            [OnEventDoAction(typeof(TimerElapsedEvent), nameof(HandleTimerElapsedEvent))]
+            internal class Init : MachineState { }
 
-            internal class GrinderTimerEvent : TimerElapsedEvent
+            protected void OnInitialize()
             {
-            }
-
-            internal class ShotTimerEvent : TimerElapsedEvent
-            {
-            }
-
-            protected override Task OnInitializeAsync(Event initialEvent)
-            {
-                if (initialEvent is ConfigEvent ce)
+                if (this.ReceivedEvent is ConfigEvent ce)
                 {
                     this.RunSlowly = ce.RunSlowly;
                 }
@@ -835,8 +838,7 @@ namespace Benchmarks.Actors
                 this.ShotButton = false;
                 this.DoorOpen = this.Random(5);
 
-                this.WaterHeaterTimer = this.StartPeriodicTimer(TimeSpan.FromSeconds(0.1), TimeSpan.FromSeconds(0.1), new HeaterTimerEvent());
-                return base.OnInitializeAsync(initialEvent);
+                this.WaterHeaterTimer = this.StartPeriodicTimer(TimeSpan.FromSeconds(0.1), TimeSpan.FromSeconds(0.1), "Heat");
             }
 
             private void OnReadPowerButton()
@@ -869,9 +871,9 @@ namespace Benchmarks.Actors
                 this.Send(this.Client, new DoorOpenEvent(this.DoorOpen));
             }
 
-            private void OnPowerButton(Event e)
+            private void OnPowerButton()
             {
-                if (e is PowerButtonEvent pe)
+                if (this.ReceivedEvent is PowerButtonEvent pe)
                 {
                     this.PowerOn = pe.PowerOn;
                     if (!this.PowerOn)
@@ -902,9 +904,9 @@ namespace Benchmarks.Actors
                 }
             }
 
-            private void OnWaterHeaterButton(Event e)
+            private void OnWaterHeaterButton()
             {
-                if (e is WaterHeaterButtonEvent we)
+                if (this.ReceivedEvent is WaterHeaterButtonEvent we)
                 {
                     this.WaterHeaterButton = we.PowerOn;
 
@@ -916,9 +918,9 @@ namespace Benchmarks.Actors
                 }
             }
 
-            private void OnGrinderButton(Event e)
+            private void OnGrinderButton()
             {
-                if (e is GrinderButtonEvent ge)
+                if (this.ReceivedEvent is GrinderButtonEvent ge)
                 {
                     this.GrinderButton = ge.PowerOn;
                     this.OnGrinderButtonChanged();
@@ -936,7 +938,7 @@ namespace Benchmarks.Actors
                     }
 
                     // start monitoring the coffee level.
-                    this.CoffeeLevelTimer = this.StartPeriodicTimer(TimeSpan.FromSeconds(0.1), TimeSpan.FromSeconds(0.1), new GrinderTimerEvent());
+                    this.CoffeeLevelTimer = this.StartPeriodicTimer(TimeSpan.FromSeconds(0.1), TimeSpan.FromSeconds(0.1), "Grind");
                 }
                 else if (this.CoffeeLevelTimer != null)
                 {
@@ -945,9 +947,9 @@ namespace Benchmarks.Actors
                 }
             }
 
-            private void OnShotButton(Event e)
+            private void OnShotButton()
             {
-                if (e is ShotButtonEvent se)
+                if (this.ReceivedEvent is ShotButtonEvent se)
                 {
                     this.ShotButton = se.PowerOn;
 
@@ -960,7 +962,7 @@ namespace Benchmarks.Actors
                         }
 
                         // time the shot then send shot complete event.
-                        this.ShotTimer = this.StartPeriodicTimer(TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(1), new ShotTimerEvent());
+                        this.ShotTimer = this.StartPeriodicTimer(TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(1), "Shot");
                     }
                     else if (this.ShotTimer != null)
                     {
@@ -970,12 +972,36 @@ namespace Benchmarks.Actors
                 }
             }
 
-            private void OnDumpGrindsButton(Event e)
+            private void OnDumpGrindsButton()
             {
-                if (e is DumpGrindsButtonEvent de && de.PowerOn)
+                if (this.ReceivedEvent is DumpGrindsButtonEvent de && de.PowerOn)
                 {
                     // this is a toggle button, in no time grinds are dumped (just for simplicity)
                     this.PortaFilterCoffeeLevel = 0;
+                }
+            }
+
+            private void HandleTimerElapsedEvent ()
+            {
+                TimerElapsedEvent ev = this.ReceivedEvent as TimerElapsedEvent;
+
+                switch (ev.Info.Payload as string)
+                {
+                    case "Heat":
+                        MonitorWaterTemperature();
+                        break;
+
+                    case "Grind":
+                        MonitorGrinder();
+                        break;
+
+                    case "Shot":
+                        MonitorShot();
+                        break;
+
+                    default:
+                        this.Assert(false, "<ErrorLog> Invalid TimerElapsedEvent received");
+                        break;
                 }
             }
 

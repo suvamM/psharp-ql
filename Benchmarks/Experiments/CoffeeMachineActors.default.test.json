@@ -1,0 +1,13 @@
+{
+    "testName": "Test_CoffeeMachineActors",
+    "assemblyPath" : "Benchmarks.Protocols.dll",
+    "outputPath" : "..\\..\\out\\CoffeeMachineActors\\default",
+    "numIterations" : 20000,
+    "maxSteps" : 1000,
+    "abstractionLevel" : "default",
+    "timeout" : 0,
+    "strategies" : [
+      "QL", "QL-NDN", "Random", "Greedy", "PCT-3", "PCT-10", "PCT-30", "IDB"
+    ]
+  }
+  

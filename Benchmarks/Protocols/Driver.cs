@@ -33,5 +33,11 @@ namespace Benchmarks.Protocols
         {
             Paxos.Execute(runtime);
         }
+
+        [Test]
+        public static void Test_CoffeeMachineActors(IMachineRuntime runtime)
+        {
+            CoffeeMachineActors.Execute(runtime);
+        }
     }
 }
