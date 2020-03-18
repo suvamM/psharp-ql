@@ -5,9 +5,9 @@ namespace Benchmarks.Micro
     public class Driver
     {
         [Test]
-        public static void Test_FailureDetector(IMachineRuntime runtime)
+        public static void Test_SimpleMessaging(IMachineRuntime runtime)
         {
-            FailureDetector.Execute(runtime);
+            SimpleMessaging.Execute(runtime);
         }
     }
 }
