@@ -650,7 +650,7 @@ namespace Benchmarks.Protocols
             [IgnoreEvents(typeof(IdleEvent))]
             private class Idle : MonitorState { }
 
-            [Hot]
+            [Cold]
             [OnEventGotoState(typeof(IdleEvent), typeof(Idle))]
             [IgnoreEvents(typeof(BusyEvent))]
             private class Busy : MonitorState { }

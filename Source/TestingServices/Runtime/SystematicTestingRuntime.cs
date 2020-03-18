@@ -496,6 +496,13 @@ namespace Microsoft.PSharp.TestingServices.Runtime
                 this.Logger.WriteLine("<FailureInjectionLog> Injecting a failure.");
             }
 
+            if (e.GetType().Name == "TimerElapsedEvent")
+            {
+                // Hardcoded for now, can convert to a generic attribute for production use.
+                opType = AsyncOperationType.InjectFailure;
+                this.Logger.WriteLine("<TimerFiredLog> Timer fired");
+            }
+
             this.Scheduler.ScheduleNextOperation(opType, AsyncOperationTarget.Inbox, target.Value);
             ResetProgramCounter(sender as Machine);
 

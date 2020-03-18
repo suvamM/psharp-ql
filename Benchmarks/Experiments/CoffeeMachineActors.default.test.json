@@ -3,7 +3,7 @@
     "assemblyPath" : "Benchmarks.Protocols.dll",
     "outputPath" : "..\\..\\out\\CoffeeMachineActors\\default",
     "numIterations" : 20000,
-    "maxSteps" : 1000,
+    "maxSteps" : 700,
     "abstractionLevel" : "default",
     "timeout" : 0,
     "strategies" : [
