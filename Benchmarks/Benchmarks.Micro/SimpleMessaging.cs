@@ -57,7 +57,7 @@ namespace Benchmarks.Micro
                 this.payload = (this.ReceivedEvent as eConfig).payload;
 
                 // repeatedly send messages to the client
-                while (true)
+                for(int i=0; i<10; i++)
                 {
                     this.Send(this.client, new eMessage(this.payload));
                 }
@@ -66,8 +66,24 @@ namespace Benchmarks.Micro
 
         private class Receiver : Machine
         {
-            private int[] ReferenceString = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 };
+            // private int[] ReferenceString = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 };
+            // private int[] ReferenceString = { 0, 1, 0, 1, 0, 1, 0, 1, 0, 1 };
+            private int[] ReferenceString = { 0, 1, 0, 1, 0, 1, 0, 0, 0, 1 };
             private int NumMatches = 0;
+
+            protected override int HashedState
+            {
+                get
+                {
+                    int hash = 14689;
+
+                    int keyHash = 37;
+                    keyHash += (keyHash * 397) + this.NumMatches;
+                    hash *= keyHash;
+                    
+                    return hash;
+                }
+            }
 
             [Start]
             [OnEventDoAction(typeof(eMessage), nameof(HandleMessage))]
@@ -75,7 +91,7 @@ namespace Benchmarks.Micro
 
             private void HandleMessage ()
             {
-                Console.WriteLine("<ReceiverLog> Received paylod: " + (this.ReceivedEvent as eMessage).payload);
+                // Console.WriteLine("<ReceiverLog> Received paylod: " + (this.ReceivedEvent as eMessage).payload);
                 if (this.NumMatches == -1)
                 {
                     return;

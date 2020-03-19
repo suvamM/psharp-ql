@@ -135,10 +135,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
         /// </summary>
         private readonly int ResetQValuesThreshold;
 
-        private int NumOptimizationInvocations;
-        private double MinQValue;
-        private long NaNCount;
-
         /// <summary>
         /// Initializes a new instance of the <see cref="QLearningStrategy"/> class.
         /// It uses the specified random number generator.
@@ -156,7 +152,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
             this.CustomHashedStates = new HashSet<int>();
             this.FullHashedStates = new HashSet<int>();
             this.PreviousOperation = 0;
-            this.LearningRate = 0.2;
+            this.LearningRate = 0.3;
             this.Gamma = 0.7;
             this.UseOptimalTemperature = true;
             this.EnhancementFactor = 1.0;
@@ -169,10 +165,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
             this.BasicActionReward = -1;
             this.Epochs = 0;
             this.ResetQValuesThreshold = 10000;
-
-            this.NumOptimizationInvocations = 0;
-            this.MinQValue = int.MaxValue;
-            this.NaNCount = 0;
         }
 
         /// <summary>
@@ -331,17 +323,10 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
         /// </summary>
         private List<double> ComputeProbabilityDistribution (List<double> qValues)
         {
-            if (qValues.Min() < this.MinQValue)
-            {
-                this.MinQValue = qValues.Min();
-            }
-
             // Use algorithm by He et. al. to scale input vector and return probabilities
             // Link to paper: http://ir.nsfc.gov.cn/paperDownload/ZD4786211.pdf
             if (this.UseOptimalTemperature)
             {
-                this.NumOptimizationInvocations++;
-
                 double tOpt;
                 List<double> zValues = new List<double>();
 
@@ -397,12 +382,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
 
                 sum = normalizedProbs.Sum();
 
-                //debug
-                if (sum == 0)
-                {
-                    this.NaNCount++;
-                }
-
                 for (int i = 0; i < normalizedProbs.Count; i++)
                 {
                     normalizedProbs[i] /= sum;
@@ -422,12 +401,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
                 }
 
                 double sum = origProbs.Sum();
-
-                //debug
-                if (sum == 0)
-                {
-                    this.NaNCount++;
-                }
 
                 for (int i = 0; i < origProbs.Count; i++)
                 {
@@ -630,6 +603,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
                 idx++;
             }
 
+            /*
             if (this.IsBugFound || this.Epochs == 10 || this.Epochs == 20 || this.Epochs == 40 || this.Epochs == 80 ||
                 this.Epochs == 160 || this.Epochs == 320 || this.Epochs == 640 || this.Epochs == 1280 || this.Epochs == 2560 ||
                 this.Epochs == 5120 || this.Epochs == 10240 || this.Epochs == 20480 || this.Epochs == 40960 ||
@@ -645,6 +619,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
                 Console.WriteLine($"==================> #{this.Epochs} MinQValue : {this.MinQValue}");
                 Console.WriteLine($"==================> #{this.Epochs} NaNCount : {this.NaNCount}");
             }
+            */
         }
 
         /// <summary>

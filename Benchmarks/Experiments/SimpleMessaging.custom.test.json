@@ -1,0 +1,12 @@
+{
+    "testName": "Test_SimpleMessaging",
+    "assemblyPath" : "Benchmarks.Micro.dll",
+    "outputPath" : "..\\..\\out\\SimpleMessaging\\default",
+    "numIterations" : 20000,
+    "maxSteps" : 200,
+    "abstractionLevel" : "custom",
+    "timeout" : 0,
+    "strategies" : [
+      "QL", "QL-NDN", "Random", "Greedy", "PCT-3", "PCT-10", "PCT-30", "IDB"
+    ]
+  }
