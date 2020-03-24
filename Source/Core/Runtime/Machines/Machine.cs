@@ -1275,7 +1275,7 @@ namespace Microsoft.PSharp
                 }
                 else if (abstractionLevel is AbstractionLevel.Custom)
                 {
-                    hash = (hash * 397) + this.Inbox.GetCachedState();
+                    // hash = (hash * 397) + this.Inbox.GetCachedState();
 
                     if (this.HashedState != 0)
                     {

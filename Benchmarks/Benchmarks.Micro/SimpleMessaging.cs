@@ -15,19 +15,17 @@ namespace Benchmarks.Micro
     {
         public static void Execute(IMachineRuntime runtime)
         {
-            MachineId client = runtime.CreateMachine(typeof(Receiver));
-            MachineId senderA = runtime.CreateMachine(typeof(Sender), new eConfig(client, 0));
-            MachineId senderB = runtime.CreateMachine(typeof(Sender), new eConfig(client, 1));
+            runtime.RegisterMonitor(typeof(Receiver));
+            MachineId senderA = runtime.CreateMachine(typeof(Sender), new eConfig(0));
+            MachineId senderB = runtime.CreateMachine(typeof(Sender), new eConfig(1));
         }
 
         private class eConfig : Event
         {
-            public MachineId client;
             public int payload;
 
-            public eConfig (MachineId client, int payload)
+            public eConfig (int payload)
             {
-                this.client = client;
                 this.payload = payload;
             }
         }
@@ -44,27 +42,35 @@ namespace Benchmarks.Micro
 
         private class Sender : Machine
         {
-            private MachineId client;
             private int payload;
+            private int numSendsBound = 10;
+            private int numSends = 0;
+
+            private class eUnit : Event { }
 
             [Start]
             [OnEntry(nameof(Initialize))]
+            [OnEventDoAction(typeof(eUnit), nameof(SendMessage))]
             class Init : MachineState { }
 
             private void Initialize()
             {
-                this.client = (this.ReceivedEvent as eConfig).client;
                 this.payload = (this.ReceivedEvent as eConfig).payload;
+                this.Send(this.Id, new eUnit());
+            }
 
-                // repeatedly send messages to the client
-                for(int i=0; i<10; i++)
+            private void SendMessage ()
+            {
+                if (numSends < numSendsBound)
                 {
-                    this.Send(this.client, new eMessage(this.payload));
+                    this.Monitor<Receiver>(new eMessage(payload));
+                    numSends++;
+                    this.Send(this.Id, new eUnit());
                 }
             }
         }
 
-        private class Receiver : Machine
+        private class Receiver : Monitor
         {
             // private int[] ReferenceString = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 };
             // private int[] ReferenceString = { 0, 1, 0, 1, 0, 1, 0, 1, 0, 1 };
@@ -87,7 +93,7 @@ namespace Benchmarks.Micro
 
             [Start]
             [OnEventDoAction(typeof(eMessage), nameof(HandleMessage))]
-            class Init : MachineState { }
+            class Init : MonitorState { }
 
             private void HandleMessage ()
             {

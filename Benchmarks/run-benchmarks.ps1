@@ -6,6 +6,9 @@ param(
 
 Import-Module $PSScriptRoot\..\Scripts\powershell\common.psm1
 
+Write-Comment -prefix "." -text "Removing existing results, if any" -color "yellow"
+Remove-Item ".\out" -Recurse -ErrorAction Ignore
+
 Write-Comment -prefix "." -text "Running the P# reinforcement-learning benchmarks" -color "yellow"
 
 $experiments = "$PSScriptRoot\Experiments"
