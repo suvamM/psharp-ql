@@ -80,17 +80,18 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
         private readonly double Gamma;
 
         /// <summary>
-        /// Determines whether QL will use a temperature in Softmax.
+        /// Select the strategy for computing the temperature parameter for Softmax.
+        /// Options: IterativeOptimalTemp, AverageScaledTemp, Softmax (no temperature)
         /// </summary>
-        private readonly bool UseOptimalTemperature;
+        private readonly string OptimalTemperatureStrategy;
 
         /// <summary>
-        /// Used during computation of optimal temperature.
+        /// Parameter for IterativeOptimalTemp.
         /// </summary>
         private readonly double EnhancementFactor;
 
         /// <summary>
-        /// Used to terminate computation of optimal temperature.
+        /// Parameter for IterativeOptimalTemp.
         /// </summary>
         private readonly double StoppingFactor;
 
@@ -135,6 +136,8 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
         /// </summary>
         private readonly int ResetQValuesThreshold;
 
+
+
         /// <summary>
         /// Initializes a new instance of the <see cref="QLearningStrategy"/> class.
         /// It uses the specified random number generator.
@@ -154,9 +157,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
             this.PreviousOperation = 0;
             this.LearningRate = 0.3;
             this.Gamma = 0.7;
-            this.UseOptimalTemperature = true;
-            this.EnhancementFactor = 1.0;
-            this.StoppingFactor = 0.00001;
             this.TrueChoiceOpValue = ulong.MaxValue;
             this.FalseChoiceOpValue = ulong.MaxValue - 1;
             this.MinIntegerChoiceOpValue = ulong.MaxValue - 2;
@@ -165,6 +165,10 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
             this.BasicActionReward = -1;
             this.Epochs = 0;
             this.ResetQValuesThreshold = 10000;
+
+            this.OptimalTemperatureStrategy = "AverageScaledTemp";
+            this.EnhancementFactor = 1.0;
+            this.StoppingFactor = 0.00001;
         }
 
         /// <summary>
@@ -323,9 +327,48 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
         /// </summary>
         private List<double> ComputeProbabilityDistribution (List<double> qValues)
         {
+            if (this.OptimalTemperatureStrategy.Equals("ScaledAverageTemp"))
+            {
+                double lowerThreshold = -40;
+                double scale = 10;
+
+                // the average is too low, scale the average up
+                if (qValues.Average() < lowerThreshold)
+                {
+                    double qAvg = qValues.Average();
+                    int exp = 1;
+
+                    while (qAvg < lowerThreshold)
+                    {
+                        qAvg /= scale;
+                        exp++;
+                    }
+
+                    scale = Math.Pow(scale, exp);
+                }
+
+                double temperature = qValues.Average() < lowerThreshold ? scale : 1;
+
+                List<double> origProbs = new List<double>();
+
+                for (int i = 0; i < qValues.Count; i++)
+                {
+                    origProbs.Add(Math.Exp(qValues[i] / temperature));
+                }
+
+                double sum = origProbs.Sum();
+
+                for (int i = 0; i < origProbs.Count; i++)
+                {
+                    origProbs[i] /= sum;
+                }
+
+                return origProbs;
+            }
+
             // Use algorithm by He et. al. to scale input vector and return probabilities
             // Link to paper: http://ir.nsfc.gov.cn/paperDownload/ZD4786211.pdf
-            if (this.UseOptimalTemperature)
+            else if (this.OptimalTemperatureStrategy.Equals("IterativeOptimalTemp"))
             {
                 double tOpt;
                 List<double> zValues = new List<double>();
@@ -389,9 +432,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
 
                 return normalizedProbs;
             }
-
-            // apply Softmax on qValues directly without scaling
-            else
+            else if (this.OptimalTemperatureStrategy.Equals("Softmax"))
             {
                 List<double> origProbs = new List<double>();
 
@@ -408,6 +449,12 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
                 }
 
                 return origProbs;
+            }
+            else
+            {
+                // TODO: find a cleaner way to write this
+                Console.WriteLine("<ErrorLog> Invalid temperature computation strategy");
+                return null;
             }
         }
 
