@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
@@ -157,8 +158,8 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
         private readonly int ResetQValuesThreshold;
 
         // parameters to investigate numerical instabilities
-        private int NumSummations;
-        private int NumInstabilities;
+        private double NumSummations;
+        private double NumInstabilities;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="QLearningStrategy"/> class.
@@ -194,8 +195,8 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
             this.StoppingFactor = 0.00001;
 
             // parameters to investigate numerical instabilities
-            this.NumInstabilities = 0;
-            this.NumSummations = 0;
+            this.NumInstabilities = 0.0;
+            this.NumSummations = 0.0;
         }
 
         /// <summary>
@@ -387,7 +388,11 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
 
                 // Debug: the following parameters are for debugging numerical instabilities
                 this.NumSummations++;
-                this.NumInstabilities = (sum == 0.0) ? this.NumInstabilities++ : this.NumInstabilities;
+
+                if (sum == 0.0)
+                {
+                    this.NumInstabilities++;
+                }
 
                 for (int i = 0; i < origProbs.Count; i++)
                 {
@@ -455,7 +460,11 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
 
                 // Debug: the following parameters are for debugging numerical instabilities
                 this.NumSummations++;
-                this.NumInstabilities = (sum == 0) ? this.NumInstabilities++ : this.NumInstabilities;
+
+                if (sum == 0.0)
+                {
+                    this.NumInstabilities++;
+                }
 
                 for (int i = 0; i < normalizedProbs.Count; i++)
                 {
@@ -477,11 +486,10 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
 
                 // Debug: the following parameters are for debugging numerical instabilities
                 this.NumSummations++;
-                this.NumInstabilities = (sum == 0) ? this.NumInstabilities++ : this.NumInstabilities;
 
                 if (sum == 0.0)
                 {
-                    Console.WriteLine($"{this.TemperatureStrategy} sum is 0");
+                    this.NumInstabilities++;
                 }
 
                 for (int i = 0; i < origProbs.Count; i++)
@@ -694,16 +702,18 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
                 this.Epochs == 5120 || this.Epochs == 10240 || this.Epochs == 20000 || this.Epochs == 20480 || this.Epochs == 40960 ||
                 this.Epochs == 81920 || this.Epochs == 163840)
             {
+                /*
                 Console.WriteLine($"==================> #{this.Epochs} ExecutionPath (size: {this.ExecutionPath.Count})");
                 Console.WriteLine($"==================> #{this.Epochs} Default States (size: {this.DefaultHashedStates.Count})");
                 Console.WriteLine($"==================> #{this.Epochs} Inbox-Only States (size: {this.InboxOnlyHashedStates.Count})");
                 Console.WriteLine($"==================> #{this.Epochs} Custom States (size: {this.CustomHashedStates.Count})");
                 Console.WriteLine($"==================> #{this.Epochs} Full States (size: {this.FullHashedStates.Count})");
+                */
 
                 // Print debugging info on numerical instabilities
-                Console.WriteLine($"==================> #Instability {this.TemperatureStrategy}: {1.0 * this.NumInstabilities})");
-                Console.WriteLine($"==================> #Summations {this.TemperatureStrategy}: {1.0 * this.NumSummations})");
-                Console.WriteLine($"==================> Fractional instability {this.TemperatureStrategy}: {1.0 * this.NumInstabilities / this.NumSummations})");
+                Console.WriteLine($"==================> #Instability {this.TemperatureStrategy}: {this.NumInstabilities}");
+                Console.WriteLine($"==================> #Summations {this.TemperatureStrategy}: {this.NumSummations}");
+                Console.WriteLine($"==================> Fractional instability {this.TemperatureStrategy}: {this.NumInstabilities / this.NumSummations}");
             }
         }
 
