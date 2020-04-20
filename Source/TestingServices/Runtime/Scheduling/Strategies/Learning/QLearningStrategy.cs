@@ -190,7 +190,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
             this.ResetQValuesThreshold = 10000;
 
             // parameters related to computing the temperature for Softmax
-            this.TemperatureStrategy = TemperatureStrategies.Default;
+            this.TemperatureStrategy = TemperatureStrategies.ScaledAverage;
             this.EnhancementFactor = 1.0;
             this.StoppingFactor = 0.00001;
 
@@ -375,6 +375,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
                     scale = Math.Pow(scale, exp);
                 }
 
+                // double temperature = qValues.Average() < lowerThreshold ? Math.Ceiling(Math.Log10(qValues.Average() / lowerThreshold)) : 1;
                 double temperature = qValues.Average() < lowerThreshold ? scale : 1;
 
                 List<double> origProbs = new List<double>();
@@ -711,9 +712,9 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
                 */
 
                 // Print debugging info on numerical instabilities
-                Console.WriteLine($"==================> #Instability {this.TemperatureStrategy}: {this.NumInstabilities}");
-                Console.WriteLine($"==================> #Summations {this.TemperatureStrategy}: {this.NumSummations}");
-                Console.WriteLine($"==================> Fractional instability {this.TemperatureStrategy}: {this.NumInstabilities / this.NumSummations}");
+                //Console.WriteLine($"==================> #Instability {this.TemperatureStrategy}: {this.NumInstabilities}");
+                //Console.WriteLine($"==================> #Summations {this.TemperatureStrategy}: {this.NumSummations}");
+                //Console.WriteLine($"==================> Fractional instability {this.TemperatureStrategy}: {this.NumInstabilities / this.NumSummations}");
             }
         }
 

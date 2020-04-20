@@ -75,6 +75,11 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
         private int Epochs;
 
         /// <summary>
+        /// Resets all QValues after this many iterations.
+        /// </summary>
+        private readonly int ResetQValuesThreshold;
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="NoRandomQLearningStrategy"/> class.
         /// It uses the specified random number generator.
         /// </summary>
@@ -92,6 +97,8 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
             this.FailureInjectionReward = -1000;
             this.BasicActionReward = -1;
             this.Epochs = 0;
+
+            this.ResetQValuesThreshold = 10000;
         }
 
         /// <summary>
@@ -154,19 +161,8 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
         /// </summary>
         private int ChooseQValueIndexFromDistribution(List<double> qValues)
         {
+            List<double> probs = this.ComputeProbabilityDistribution(qValues);
             double sum = 0;
-            for (int i = 0; i < qValues.Count; i++)
-            {
-                qValues[i] = Math.Exp(qValues[i]);
-                sum += qValues[i];
-            }
-
-            for (int i = 0; i < qValues.Count; i++)
-            {
-                qValues[i] /= sum;
-            }
-
-            sum = 0;
 
             // First, change the shape of the distribution probability array to be cumulative.
             // For example, instead of [0.1, 0.2, 0.3, 0.4], we get [0.1, 0.3, 0.6, 1.0].
@@ -227,6 +223,50 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
         }
 
         /// <summary>
+        /// Returns a probability distribution corresponding to an input vector using Softmax
+        /// </summary>
+        #pragma warning disable CA1822
+        private List<double> ComputeProbabilityDistribution(List<double> qValues)
+        {
+            double lowerThreshold = -40;
+            double scale = 10;
+
+            // the average is too low, scale the average up
+            if (qValues.Average() < lowerThreshold)
+            {
+                double qAvg = qValues.Average();
+                int exp = 1;
+
+                while (qAvg < lowerThreshold)
+                {
+                    qAvg /= scale;
+                    exp++;
+                }
+
+                scale = Math.Pow(scale, exp);
+            }
+
+            // double temperature = qValues.Average() < lowerThreshold ? Math.Ceiling(Math.Log10(qValues.Average() / lowerThreshold)) : 1;
+            double temperature = qValues.Average() < lowerThreshold ? scale : 1;
+
+            List<double> origProbs = new List<double>();
+
+            for (int i = 0; i < qValues.Count; i++)
+            {
+                origProbs.Add(Math.Exp(qValues[i] / temperature));
+            }
+
+            double sum = origProbs.Sum();
+
+            for (int i = 0; i < origProbs.Count; i++)
+            {
+                origProbs[i] /= sum;
+            }
+
+            return origProbs;
+        }
+#pragma warning restore CA1822
+        /// <summary>
         /// Initializes the Q values of all enabled operations that can be chosen
         /// at the specified state that have not been previously encountered.
         /// </summary>
@@ -261,7 +301,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
             this.Epochs++;
 
             // When using the /explore flag, reset all learned data on finding a bug.
-            if (this.IsBugFound)
+            if (this.IsBugFound || (this.Epochs % this.ResetQValuesThreshold == 0))
             {
                 this.ResetQLearning();
             }

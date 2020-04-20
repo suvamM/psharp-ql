@@ -128,7 +128,7 @@ namespace EvaluationDriver
             }
             
 
-            bugFraction = (double) numBugs / (double)configuration.NumIterations;
+            bugFraction = 100 * ((double) numBugs / (double)configuration.NumIterations);
             Console.WriteLine($"... {schedulerName} bug fraction: {bugFraction}");
             return new Result(schedulerName, bugFraction);
         }
