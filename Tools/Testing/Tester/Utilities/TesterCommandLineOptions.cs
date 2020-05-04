@@ -41,6 +41,11 @@ namespace Microsoft.PSharp.Utilities
             {
                 this.Configuration.SchedulingStrategy = SchedulingStrategy.Interactive;
             }
+            else if (IsMatch(option, @"^[\/|-]testvar:") && option.Contains("="))
+            {
+                string[] parts = option.Substring(9).Split(new char[] { '=' }, 2);
+                this.Configuration.TestVars[parts[0]] = parts[1];
+            }
             else if (IsMatch(option, @"^[\/|-]sch:"))
             {
                 string scheduler = option.Substring(5);

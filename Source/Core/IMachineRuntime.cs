@@ -327,6 +327,11 @@ namespace Microsoft.PSharp
         ILogger SetLogger(ILogger logger);
 
         /// <summary>
+        /// Get a test var.
+        /// </summary>
+        string GetTestVar(string name);
+
+        /// <summary>
         /// Terminates the runtime and notifies each active machine to halt execution.
         /// </summary>
         void Stop();

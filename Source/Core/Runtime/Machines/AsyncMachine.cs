@@ -26,7 +26,7 @@ namespace Microsoft.PSharp.Runtime
         /// <summary>
         /// The unique machine id.
         /// </summary>
-        protected internal MachineId Id { get; private set; }
+        public MachineId Id { get; private set; }
 
         /// <summary>
         /// Id used to identify subsequent operations performed by this machine.

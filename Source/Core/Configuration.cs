@@ -126,6 +126,12 @@ namespace Microsoft.PSharp
         public string TestMethodName;
 
         /// <summary>
+        /// Custom variables whose meaning depends on the test.
+        /// </summary>
+        [DataMember]
+        public Dictionary<string, string> TestVars;
+
+        /// <summary>
         /// Scheduling strategy to use with the P# tester.
         /// </summary>
         [DataMember]
@@ -452,6 +458,7 @@ namespace Microsoft.PSharp
             this.AssemblyToBeAnalyzed = string.Empty;
             this.TestingRuntimeAssembly = string.Empty;
             this.TestMethodName = string.Empty;
+            this.TestVars = new Dictionary<string, string>();
 
             this.SchedulingStrategy = SchedulingStrategy.Random;
             this.AbstractionLevel = AbstractionLevel.Default;

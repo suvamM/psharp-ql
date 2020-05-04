@@ -708,6 +708,12 @@ namespace Microsoft.PSharp.Runtime
                 : new AssertionFailureException(string.Format(CultureInfo.InvariantCulture, s, args), exception);
         }
 
+        public string GetTestVar(string name)
+        {
+            this.Configuration.TestVars.TryGetValue(name, out string value);
+            return value;
+        }
+
         /// <summary>
         /// Disposes runtime resources.
         /// </summary>
