@@ -41,6 +41,14 @@ namespace Microsoft.PSharp.Utilities
             {
                 this.Configuration.SchedulingStrategy = SchedulingStrategy.Interactive;
             }
+            else if (IsMatch(option, @"^[\/|-]break$"))
+            {
+                this.Configuration.AttachDebugger = true;
+            }
+            else if (IsMatch(option, @"^[\/|-]attach-debugger$"))
+            {
+                this.Configuration.AttachDebugger = true;
+            }
             else if (IsMatch(option, @"^[\/|-]testvar:") && option.Contains("="))
             {
                 string[] parts = option.Substring(9).Split(new char[] { '=' }, 2);
