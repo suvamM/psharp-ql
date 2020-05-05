@@ -92,7 +92,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         /// <summary>
         /// The root task id.
         /// </summary>
-        internal readonly int? RootTaskId;
+        internal readonly Thread RootThread;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SystematicTestingRuntime"/> class.
@@ -103,7 +103,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
         {
             this.Monitors = new List<Monitor>();
             this.MachineOperations = new ConcurrentDictionary<ulong, MachineOperation>();
-            this.RootTaskId = Task.CurrentId;
+            this.RootThread = Thread.CurrentThread;
             this.CreatedMachineIds = new HashSet<MachineId>();
             this.NameValueToMachineId = new ConcurrentDictionary<string, MachineId>();
 
@@ -597,7 +597,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
 
                 try
                 {
-                    OperationScheduler.NotifyOperationStarted(op);
+                    this.Scheduler.NotifyOperationStarted(op);
 
                     if (isFresh)
                     {
@@ -964,7 +964,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
 
                 try
                 {
-                    OperationScheduler.NotifyOperationStarted(op);
+                    this.Scheduler.NotifyOperationStarted(op);
 
                     await machine.ExecuteAsync();
 

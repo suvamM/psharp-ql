@@ -3,10 +3,12 @@
 // Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------------------------------------------
 
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 using Microsoft.PSharp.IO;
@@ -47,6 +49,11 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// Map from ids of tasks that are controlled by the runtime to operations.
         /// </summary>
         internal readonly ConcurrentDictionary<int, MachineOperation> ControlledTaskMap;
+
+        /// <summary>
+        /// Stores the operation executing in the current thread.
+        /// </summary>
+        private readonly ThreadLocal<MachineOperation> CurrentMachineOperation;
 
         /// <summary>
         /// The program schedule trace.
@@ -99,6 +106,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
             this.Strategy = strategy;
             this.OperationMap = new Dictionary<ulong, MachineOperation>();
             this.ControlledTaskMap = new ConcurrentDictionary<int, MachineOperation>();
+            this.CurrentMachineOperation = new ThreadLocal<MachineOperation>();
             this.ScheduleTrace = trace;
             this.CompletionSource = new TaskCompletionSource<bool>();
             this.IsSchedulerRunning = true;
@@ -111,10 +119,15 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// </summary>
         internal void ScheduleNextOperation(AsyncOperationType type, AsyncOperationTarget target, ulong targetId)
         {
-            int? taskId = Task.CurrentId;
+            // int? taskId = Task.CurrentId;
 
             // If the caller is the root task, then return.
-            if (taskId != null && taskId == this.Runtime.RootTaskId)
+            // if (taskId != null && taskId == this.Runtime.RootTaskId)
+            // {
+            //    return;
+            // }
+
+            if (this.CurrentMachineOperation.Value == null)
             {
                 return;
             }
@@ -182,23 +195,22 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                         return;
                     }
 
-                    if (!this.ControlledTaskMap.ContainsKey(Task.CurrentId.Value))
-                    {
-                        this.ControlledTaskMap.TryAdd(Task.CurrentId.Value, current);
-                        Debug.WriteLine($"<ScheduleDebug> Operation '{current.SourceId}' is associated with task '{Task.CurrentId}'.");
-                    }
+                    // if (!this.ControlledTaskMap.ContainsKey(Task.CurrentId.Value))
+                    // {
+                    //    this.ControlledTaskMap.TryAdd(Task.CurrentId.Value, current);
+                    // }
 
                     while (!current.IsActive)
                     {
-                        Debug.WriteLine($"<ScheduleDebug> Sleeping the current operation of '{current.SourceName}' on task '{Task.CurrentId}'.");
+                        Debug.WriteLine($"<ScheduleDebug> Sleeping the current operation of '{current.SourceName}'.");
                         System.Threading.Monitor.Wait(current);
-                        Debug.WriteLine($"<ScheduleDebug> Waking up the current operation of '{current.SourceName}' on task '{Task.CurrentId}'.");
+                        Debug.WriteLine($"<ScheduleDebug> Waking up the current operation of '{current.SourceName}'.");
                     }
 
-                    Debug.WriteLine($"<ScheduleDebug> Woke up the current operation of '{current.SourceName}' on task '{Task.CurrentId}'.");
+                    Debug.WriteLine($"<ScheduleDebug> Woke up the current operation of '{current.SourceName}'.");
                     if (current.Status != AsyncOperationStatus.Enabled)
                     {
-                        Debug.WriteLine($"<ScheduleDebug> Woke[2] up the current operation of '{current.SourceName}' on task '{Task.CurrentId}'.");
+                        Debug.WriteLine($"<ScheduleDebug> Woke[2] up the current operation of '{current.SourceName}'.");
                         throw new ExecutionCanceledException();
                     }
                 }
@@ -315,19 +327,21 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
         /// <summary>
         /// Notify that the specified asynchronous operation has started.
         /// </summary>
-        internal static void NotifyOperationStarted(MachineOperation op)
+        internal void NotifyOperationStarted(MachineOperation op)
         {
-            Debug.WriteLine($"<ScheduleDebug> Starting the current operation of '{op.SourceName}' on task '{Task.CurrentId}'.");
+            Debug.WriteLine($"<ScheduleDebug> Starting the current operation of '{op.SourceName}'.");
 
             lock (op)
             {
+                this.CurrentMachineOperation.Value = op;
+
                 op.IsHandlerRunning = true;
                 System.Threading.Monitor.PulseAll(op);
                 while (!op.IsActive)
                 {
-                    Debug.WriteLine($"<ScheduleDebug> Sleeping the current operation of '{op.SourceName}' on task '{Task.CurrentId}'.");
+                    Debug.WriteLine($"<ScheduleDebug> Sleeping the current operation of '{op.SourceName}'.");
                     System.Threading.Monitor.Wait(op);
-                    Debug.WriteLine($"<ScheduleDebug> Waking up the current operation of '{op.SourceName}' on task '{Task.CurrentId}'.");
+                    Debug.WriteLine($"<ScheduleDebug> Waking up the current operation of '{op.SourceName}'.");
                 }
 
                 if (op.Status != AsyncOperationStatus.Enabled)
@@ -447,12 +461,12 @@ namespace Microsoft.PSharp.TestingServices.Scheduling
                 throw new ExecutionCanceledException();
             }
 
-            if (!Task.CurrentId.HasValue || !this.ControlledTaskMap.ContainsKey(Task.CurrentId.Value))
-            {
-                this.NotifyAssertionFailure(string.Format(CultureInfo.InvariantCulture,
-                    "Task with id '{0}' that is not controlled by the P# runtime invoked a runtime method.",
-                    Task.CurrentId.HasValue ? Task.CurrentId.Value.ToString() : "<unknown>"));
-            }
+            // if (!Task.CurrentId.HasValue || !this.ControlledTaskMap.ContainsKey(Task.CurrentId.Value))
+            // {
+            //    this.NotifyAssertionFailure(string.Format(CultureInfo.InvariantCulture,
+            //        "Task with id '{0}' that is not controlled by the P# runtime invoked a runtime method.",
+            //        Task.CurrentId.HasValue ? Task.CurrentId.Value.ToString() : "<unknown>"));
+            // }
         }
 
         /// <summary>
