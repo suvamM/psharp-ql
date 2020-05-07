@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
 
@@ -35,18 +36,29 @@ namespace FaultInjector
         private Dictionary<int, SendData> AllSends;
         private int AllSendsCounter;
         private ProgramUnderTest programUnderTest;
+        private Dictionary<Configuration.SchedulerType, string> SchedulerNames;
 
         public FaultInjector(ProgramUnderTest programUnderTest)
         {
             this.programUnderTest = programUnderTest;
             AllSends = new Dictionary<int, SendData>();
             AllSendsCounter = 0;
+
+            SchedulerNames = new Dictionary<Configuration.SchedulerType, string>();
+            SchedulerNames.Add(Configuration.SchedulerType.QL, "rl");
+            SchedulerNames.Add(Configuration.SchedulerType.QLNDN, "no-random-rl");
+            SchedulerNames.Add(Configuration.SchedulerType.Random, "random");
+            SchedulerNames.Add(Configuration.SchedulerType.Greedy, "greedy");
+            SchedulerNames.Add(Configuration.SchedulerType.PCT3, "pct:3");
+            SchedulerNames.Add(Configuration.SchedulerType.PCT10, "pct:10");
+            SchedulerNames.Add(Configuration.SchedulerType.PCT30, "pct:30");
+            SchedulerNames.Add(Configuration.SchedulerType.IDB, "idb");
         }
 
-        public async Task SystematicFaultInjector(string root)
+        public async Task SystematicFaultInjector()
         {
             // traverse the directory and get information about all the sends
-            TraverseDirectory(root);
+            TraverseDirectory(programUnderTest.sourcePath);
 
             // systematically disable each send
             foreach (var sendId in AllSends.Keys)
@@ -58,8 +70,13 @@ namespace FaultInjector
                 RewriteFile(AllSends[sendId].file, fileInfo.newFileData);
 
                 // re-build the project with the rewriting
+                await BuildProjectAsync(programUnderTest);
 
-                // execute the tester
+                // execute the tester for each test file
+                foreach(var test in programUnderTest.tests)
+                {
+                    await RunTestsAsync(AllSends[sendId].file, fileInfo.newFileData, test);
+                }
 
                 // Restore file contents
                 RewriteFile(AllSends[sendId].file, fileInfo.oldFileData);
@@ -179,6 +196,7 @@ namespace FaultInjector
         {
             string oldFileContents = "";
             string newFileContents = "";
+            string faultNotifyline = "// FAULT \n";
 
             StreamReader fstream = AllSends[sendId].file.OpenText();
             var lines = fstream.ReadToEnd().Split("\r\n".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
@@ -188,7 +206,7 @@ namespace FaultInjector
             {
                 if (line.Contains("this.Send(") || line.Contains("Send("))
                 {
-                    newFileContents += (localSendCounter == AllSends[sendId].sendId) ? "//" + line + "\n" : line + "\n";
+                    newFileContents += (localSendCounter == AllSends[sendId].sendId) ? faultNotifyline + "//" + line + "\n" : line + "\n";
                     localSendCounter++;
                 }
                 else
@@ -208,6 +226,76 @@ namespace FaultInjector
         private void RewriteFile(FileInfo fi, string fileContents)
         {
             System.IO.File.WriteAllText(fi.FullName, fileContents);
+        }
+
+        /// <summary>
+        /// Builds the project under test
+        /// </summary>
+        /// <param name="programUnderTest"></param>
+        /// <returns></returns>
+        private async Task BuildProjectAsync(ProgramUnderTest programUnderTest)
+        {
+            string testProjectPath = programUnderTest.testsPath + programUnderTest.testProject;
+
+            Console.WriteLine("\n---------- Rebuilding project ----------\n");
+
+            using (Process p = new Process())
+            {
+                p.StartInfo.UseShellExecute = false;
+                p.StartInfo.RedirectStandardOutput = true;
+                p.StartInfo.FileName = Configuration.msbuildPath;
+                p.StartInfo.Arguments = $" {testProjectPath} ";
+                p.StartInfo.Arguments += $" /p:Configuration=Debug ";
+
+                // Start the child process.
+                p.Start();
+
+                await Task.Yield();
+
+                // Read the output stream first and then wait.
+                string output = p.StandardOutput.ReadToEnd();
+                Console.WriteLine(output);
+                p.WaitForExit();
+            }
+
+            Console.WriteLine("\n---------- Project build finished ----------\n");
+        }
+
+        private async Task RunTestsAsync(FileInfo fi, string fileContents, string test)
+        {
+            var testingTasks = new List<Task>();
+
+            foreach (var stype in (Configuration.SchedulerType[])Enum.GetValues(typeof(Configuration.SchedulerType)))
+            {
+                testingTasks.Add(RunTesterAsync(stype, test));
+            }
+            await Task.WhenAll(testingTasks);
+        }
+
+        private async Task RunTesterAsync(Configuration.SchedulerType stype, string test)
+        {
+            Console.WriteLine("\n---------- Rebuilding project ----------\n");
+
+            using (Process p = new Process())
+            {
+                p.StartInfo.UseShellExecute = false;
+                p.StartInfo.RedirectStandardOutput = true;
+                p.StartInfo.FileName = Configuration.msbuildPath;
+                p.StartInfo.Arguments = $" {testProjectPath} ";
+                p.StartInfo.Arguments += $" /p:Configuration=Debug ";
+
+                // Start the child process.
+                p.Start();
+
+                await Task.Yield();
+
+                // Read the output stream first and then wait.
+                string output = p.StandardOutput.ReadToEnd();
+                Console.WriteLine(output);
+                p.WaitForExit();
+            }
+
+            Console.WriteLine("\n---------- Project build finished ----------\n");
         }
 
     }

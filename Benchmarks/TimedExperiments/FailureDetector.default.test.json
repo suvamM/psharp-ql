@@ -1,11 +1,11 @@
 {
-  "testName": "Test_Paxos",
+  "testName": "Test_FailureDetector",
   "assemblyPath" : "Benchmarks.Protocols.dll",
-  "outputPath" : "..\\..\\out\\Paxos\\default",
+  "outputPath" : "..\\..\\out\\FailureDetector\\default",
   "numIterations" : 1000000,
-  "maxSteps" : 1000,
+  "maxSteps" : 200,
   "abstractionLevel" : "default",
-  "timeout" : 0,
+  "timeout" : 300,
   "strategies" : [
     "QL", "QL-NDN", "Random", "Greedy", "PCT-3", "PCT-10", "PCT-30", "IDB"
   ]
