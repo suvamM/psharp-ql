@@ -15,6 +15,16 @@ namespace Accumulator
         {
         }
 
+        static int iter = 1;
+        static readonly int binSize = 100;
+
+        // Number of unique states explored in a set of iterations.
+        static readonly ArrayList coverage = new ArrayList();
+
+        static int addCount = 0;
+        static int multCount = 0;
+        static int resetCount = 0;
+
         [Test]
         public static void Execute(IMachineRuntime runtime)
         {
@@ -23,16 +33,6 @@ namespace Accumulator
             runtime.CreateMachine(typeof(Worker), new OpEvent(Operation.Mult));
             runtime.CreateMachine(typeof(Worker), new OpEvent(Operation.Reset));
         }
-
-        static int iter = 1;
-        static readonly int binSize = 100;
-
-        // number of unique states explored in a set of iterations
-        static readonly ArrayList coverage = new ArrayList();
-
-        static int addCount = 0;
-        static int multCount = 0;
-        static int resetCount = 0;
 
         [TestIterationDispose]
         public static void EndIter()
