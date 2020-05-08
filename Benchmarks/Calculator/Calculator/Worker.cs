@@ -5,7 +5,7 @@ using Microsoft.PSharp;
 
 namespace Calculator
 {
-    public class Worker : Machine
+    internal class Worker : Machine
     {
         Operation op;
 

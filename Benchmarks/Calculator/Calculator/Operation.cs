@@ -3,7 +3,7 @@
 
 namespace Calculator
 {
-    public enum Operation
+    internal enum Operation
     {
         Add,
         Sub,

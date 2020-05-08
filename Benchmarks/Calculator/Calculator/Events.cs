@@ -5,9 +5,9 @@ using Microsoft.PSharp;
 
 namespace Calculator
 {
-    public class LoopEvent : Event { }
+    internal class LoopEvent : Event { }
 
-    public class OpEvent : Event
+    internal class OpEvent : Event
     {
         public Operation op;
 

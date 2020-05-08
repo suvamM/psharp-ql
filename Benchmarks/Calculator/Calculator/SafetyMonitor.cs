@@ -6,7 +6,7 @@ using Microsoft.PSharp;
 
 namespace Calculator
 {
-    public class SafetyMonitor : Monitor
+    internal class SafetyMonitor : Monitor
     {
         protected override int HashedState
         {
@@ -39,9 +39,17 @@ namespace Calculator
             {
                 ActionsFreq.Add(Operation.Add, 0);
             }
+            if (!ActionsFreq.ContainsKey(Operation.Sub))
+            {
+                ActionsFreq.Add(Operation.Sub, 0);
+            }
             if (!ActionsFreq.ContainsKey(Operation.Mult))
             {
                 ActionsFreq.Add(Operation.Mult, 0);
+            }
+            if (!ActionsFreq.ContainsKey(Operation.Div))
+            {
+                ActionsFreq.Add(Operation.Div, 0);
             }
             if (!ActionsFreq.ContainsKey(Operation.Reset))
             {
@@ -58,9 +66,19 @@ namespace Calculator
                     Value++;
                     break;
 
+                case Operation.Sub:
+                    ActionsFreq[Operation.Sub]++;
+                    Value--;
+                    break;
+
                 case Operation.Mult:
                     ActionsFreq[Operation.Mult]++;
                     Value *= 2;
+                    break;
+
+                case Operation.Div:
+                    ActionsFreq[Operation.Div]++;
+                    Value /= 2;
                     break;
 
                 case Operation.Reset:
