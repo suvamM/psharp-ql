@@ -8,7 +8,7 @@ namespace Accumulator
 {
     class Program
     {
-        static void Main(string[] args)
+        static void Main()
         {
         }
 
@@ -16,16 +16,16 @@ namespace Accumulator
         public static void Execute(IMachineRuntime runtime)
         {
             runtime.RegisterMonitor(typeof(SafetyMonitor));
-            runtime.CreateMachine(typeof(Worker), new eOp(CalcOp.Add));
-            runtime.CreateMachine(typeof(Worker), new eOp(CalcOp.Mult));
-            runtime.CreateMachine(typeof(Worker), new eOp(CalcOp.Reset));
+            runtime.CreateMachine(typeof(Worker), new OpEvent(CalcOp.Add));
+            runtime.CreateMachine(typeof(Worker), new OpEvent(CalcOp.Mult));
+            runtime.CreateMachine(typeof(Worker), new OpEvent(CalcOp.Reset));
         }
 
         static int iter = 1;
-        static int binSize = 100;
+        static readonly int binSize = 100;
 
         // number of unique states explored in a set of iterations
-        static ArrayList coverage = new ArrayList();
+        static readonly ArrayList coverage = new ArrayList();
 
         static int addCount = 0;
         static int multCount = 0;
@@ -43,27 +43,22 @@ namespace Accumulator
                 coverage.Add(SafetyMonitor.ValuesCount.Keys.Count);
 
                 string docPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-                int tempAddCount = 0;
-                int tempMultCount = 0;
-                int tempResetCount = 0;
 
-                tempAddCount = (SafetyMonitor.ActionsFreq[CalcOp.Add] - addCount);
+                int tempAddCount = (SafetyMonitor.ActionsFreq[CalcOp.Add] - addCount);
                 addCount = SafetyMonitor.ActionsFreq[CalcOp.Add];
 
-                tempMultCount = (SafetyMonitor.ActionsFreq[CalcOp.Mult] - multCount);
+                int tempMultCount = (SafetyMonitor.ActionsFreq[CalcOp.Mult] - multCount);
                 multCount = SafetyMonitor.ActionsFreq[CalcOp.Mult];
 
-                tempResetCount = (SafetyMonitor.ActionsFreq[CalcOp.Reset] - resetCount);
+                int tempResetCount = (SafetyMonitor.ActionsFreq[CalcOp.Reset] - resetCount);
                 resetCount = SafetyMonitor.ActionsFreq[CalcOp.Reset];
 
                 using (StreamWriter outputFile = new StreamWriter(Path.Combine(docPath, "actionCoverage.csv"), true))
                 {
-                    string s = $"{iter},  {tempAddCount}, {multCount}, {tempResetCount}";
+                    string s = $"{iter},  {tempAddCount}, {tempMultCount}, {tempResetCount}";
                     outputFile.WriteLine(s);
                 }
-
             }
-
         }
 
         [TestDispose]
@@ -84,15 +79,15 @@ namespace Accumulator
         }
     }
 
-    class eLoop : Event { }
+    class LoopEvent : Event { }
 
     enum CalcOp { Add, Mult, Reset };
 
-    class eOp : Event
+    class OpEvent : Event
     {
         public CalcOp op;
 
-        public eOp(CalcOp op)
+        public OpEvent(CalcOp op)
         {
             this.op = op;
         }
@@ -104,19 +99,19 @@ namespace Accumulator
 
         [Start]
         [OnEntry(nameof(DoInit))]
-        [OnEventDoAction(typeof(eLoop), nameof(Loop))]
+        [OnEventDoAction(typeof(LoopEvent), nameof(Loop))]
         private class Init : MachineState { }
 
         private void DoInit()
         {
-            this.op = (ReceivedEvent as eOp).op;
-            this.Send(this.Id, new eLoop());
+            this.op = (ReceivedEvent as OpEvent).op;
+            this.Send(this.Id, new LoopEvent());
         }
 
         private void Loop()
         {
-            this.Monitor(typeof(SafetyMonitor), new eOp(op));
-            this.Send(this.Id, new eLoop());
+            this.Monitor(typeof(SafetyMonitor), new OpEvent(op));
+            this.Send(this.Id, new LoopEvent());
         }
     }
 
@@ -139,7 +134,7 @@ namespace Accumulator
 
         [Start]
         [OnEntry(nameof(DoInit))]
-        [OnEventDoAction(typeof(eOp), nameof(HandleMsg))]
+        [OnEventDoAction(typeof(OpEvent), nameof(HandleMsg))]
         private class Init : MonitorState { }
 
         private void DoInit()
@@ -165,7 +160,7 @@ namespace Accumulator
 
         private void HandleMsg()
         {
-            switch ((ReceivedEvent as eOp).op)
+            switch ((ReceivedEvent as OpEvent).op)
             {
                 case CalcOp.Add:
                     ActionsFreq[CalcOp.Add]++;
