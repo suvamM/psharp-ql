@@ -142,11 +142,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
         private int Epochs;
 
         /// <summary>
-        /// Resets all QValues after this many iterations.
-        /// </summary>
-        private readonly int ResetQValuesThreshold;
-
-        /// <summary>
         /// Initializes a new instance of the <see cref="QLearningStrategy"/> class.
         /// It uses the specified random number generator.
         /// </summary>
@@ -174,7 +169,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
             this.FailureInjectionReward = -1000;
             this.BasicActionReward = -1;
             this.Epochs = 0;
-            this.ResetQValuesThreshold = 10000;
         }
 
         /// <summary>
@@ -551,24 +545,18 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
                 idx++;
             }
 
-            /*
             if (this.IsBugFound || this.Epochs == 10 || this.Epochs == 20 || this.Epochs == 40 || this.Epochs == 80 ||
                 this.Epochs == 160 || this.Epochs == 320 || this.Epochs == 640 || this.Epochs == 1280 || this.Epochs == 2560 ||
-                this.Epochs == 5120 || this.Epochs == 10240 || this.Epochs == 20000 || this.Epochs == 20480 || this.Epochs == 40960 ||
+                this.Epochs == 5120 || this.Epochs == 10240 || this.Epochs == 20480 || this.Epochs == 40960 ||
                 this.Epochs == 81920 || this.Epochs == 163840)
             {
                 Console.WriteLine($"==================> #{this.Epochs} ExecutionPath (size: {this.ExecutionPath.Count})");
+                Console.WriteLine($"==================> #{this.Epochs} UniqueStates (size: {this.UniqueStates.Count})");
                 Console.WriteLine($"==================> #{this.Epochs} Default States (size: {this.DefaultHashedStates.Count})");
                 Console.WriteLine($"==================> #{this.Epochs} Inbox-Only States (size: {this.InboxOnlyHashedStates.Count})");
                 Console.WriteLine($"==================> #{this.Epochs} Custom States (size: {this.CustomHashedStates.Count})");
                 Console.WriteLine($"==================> #{this.Epochs} Full States (size: {this.FullHashedStates.Count})");
-
-                // Print debugging info on numerical instabilities
-                //Console.WriteLine($"==================> #Instability {this.TemperatureStrategy}: {this.NumInstabilities}");
-                //Console.WriteLine($"==================> #Summations {this.TemperatureStrategy}: {this.NumSummations}");
-                //Console.WriteLine($"==================> Fractional instability {this.TemperatureStrategy}: {this.NumInstabilities / this.NumSummations}");
             }
-            */
         }
 
         /// <summary>

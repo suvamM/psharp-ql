@@ -101,11 +101,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
         private int Epochs;
 
         /// <summary>
-        /// Resets all QValues after this many iterations.
-        /// </summary>
-        private readonly int ResetQValuesThreshold;
-
-        /// <summary>
         /// Initializes a new instance of the <see cref="NoRandomQLearningStrategy"/> class.
         /// It uses the specified random number generator.
         /// </summary>
@@ -125,7 +120,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
             this.FailureInjectionReward = -1000;
             this.BasicActionReward = -1;
             this.Epochs = 0;
-            this.ResetQValuesThreshold = 10000;
         }
 
         /// <summary>
