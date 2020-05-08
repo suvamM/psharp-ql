@@ -2,14 +2,9 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.PSharp;
-using Microsoft.PSharp.IO;
 
-namespace Calc
+namespace Calculator
 {
     class Program
     {
@@ -17,15 +12,15 @@ namespace Calc
         {
         }
 
-        [Microsoft.PSharp.Test]
+        [Test]
         public static void Execute(IMachineRuntime runtime)
         {
-            runtime.RegisterMonitor(typeof(Calc.SafetyMonitor));
-            runtime.CreateMachine(typeof(Calc.Worker), new eOp(CalcOp.Add));
-            runtime.CreateMachine(typeof(Calc.Worker), new eOp(CalcOp.Sub));
-            runtime.CreateMachine(typeof(Calc.Worker), new eOp(CalcOp.Mult));
-            runtime.CreateMachine(typeof(Calc.Worker), new eOp(CalcOp.Div));
-            runtime.CreateMachine(typeof(Calc.Worker), new eOp(CalcOp.Reset));
+            runtime.RegisterMonitor(typeof(SafetyMonitor));
+            runtime.CreateMachine(typeof(Worker), new eOp(CalcOp.Add));
+            runtime.CreateMachine(typeof(Worker), new eOp(CalcOp.Sub));
+            runtime.CreateMachine(typeof(Worker), new eOp(CalcOp.Mult));
+            runtime.CreateMachine(typeof(Worker), new eOp(CalcOp.Div));
+            runtime.CreateMachine(typeof(Worker), new eOp(CalcOp.Reset));
         }
 
         static int iter = 1;
@@ -40,7 +35,7 @@ namespace Calc
         static int divCount = 0;
         static int resetCount = 0;
 
-        [Microsoft.PSharp.TestIterationDispose]
+        [TestIterationDispose]
         public static void EndIter()
         {
             iter++;
@@ -83,7 +78,7 @@ namespace Calc
 
         }
 
-        [Microsoft.PSharp.TestDispose]
+        [TestDispose]
         public static void End()
         {
             Console.WriteLine("<EndTesting> Dumping all results to csv");
