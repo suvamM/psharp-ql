@@ -16,6 +16,22 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
     public sealed class NoRandomQLearningStrategy : RandomStrategy
     {
         /// <summary>
+        /// Set the temperature computation for Softmax
+        /// </summary>
+        private enum TemperatureStrategies
+        {
+            /// <summary>
+            /// Default softmax without any temperature
+            /// </summary>
+            Default = 0,
+
+            /// <summary>
+            /// Scale the average based on a lower threshold
+            /// </summary>
+            ScaledAverage
+        }
+
+        /// <summary>
         /// Map from program states to a map from next operations to their quality values.
         /// </summary>
         private readonly Dictionary<int, Dictionary<ulong, double>> OperationQTable;
@@ -54,6 +70,16 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
         private readonly double Gamma;
 
         /// <summary>
+        /// Set the strategy used for temperature computation for Softmax.
+        /// </summary>
+        private readonly TemperatureStrategies TemperatureStrategy;
+
+        /// <summary>
+        /// The threshold for performing scaled average.
+        /// </summary>
+        private readonly double ScaledAverageLowerThreshold;
+
+        /// <summary>
         /// The bug state reward. This gets updated based on the maximum
         /// negative reward seen during the current execution.
         /// </summary>
@@ -75,6 +101,11 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
         private int Epochs;
 
         /// <summary>
+        /// Resets all QValues after this many iterations.
+        /// </summary>
+        private readonly int ResetQValuesThreshold;
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="NoRandomQLearningStrategy"/> class.
         /// It uses the specified random number generator.
         /// </summary>
@@ -88,10 +119,13 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
             this.PreviousOperation = 0;
             this.LearningRate = 0.3;
             this.Gamma = 0.7;
+            this.TemperatureStrategy = TemperatureStrategies.ScaledAverage;
+            this.ScaledAverageLowerThreshold = -40;
             this.BugStateReward = -1000;
             this.FailureInjectionReward = -1000;
             this.BasicActionReward = -1;
             this.Epochs = 0;
+            this.ResetQValuesThreshold = 10000;
         }
 
         /// <summary>
@@ -155,9 +189,29 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
         private int ChooseQValueIndexFromDistribution(List<double> qValues)
         {
             double sum = 0;
+            double temperature = 1;
+            if (this.TemperatureStrategy == TemperatureStrategies.ScaledAverage)
+            {
+                // double temperature = average < lowerThreshold ? Math.Ceiling(Math.Log10(average / lowerThreshold)) : 1;
+                double average = qValues.Average();
+                if (average < this.ScaledAverageLowerThreshold)
+                {
+                    // The average is too low, scale the average up.
+                    temperature = 10;
+                    int exp = 1;
+                    while (average < this.ScaledAverageLowerThreshold)
+                    {
+                        average /= temperature;
+                        exp++;
+                    }
+
+                    temperature = Math.Pow(temperature, exp);
+                }
+            }
+
             for (int i = 0; i < qValues.Count; i++)
             {
-                qValues[i] = Math.Exp(qValues[i]);
+                qValues[i] = Math.Exp(qValues[i] / temperature);
                 sum += qValues[i];
             }
 
@@ -261,7 +315,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
             this.Epochs++;
 
             // When using the /explore flag, reset all learned data on finding a bug.
-            if (this.IsBugFound)
+            if (this.IsBugFound || (this.Epochs % this.ResetQValuesThreshold == 0))
             {
                 this.ResetQLearning();
             }

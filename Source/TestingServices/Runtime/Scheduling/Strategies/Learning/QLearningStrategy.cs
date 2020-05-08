@@ -17,6 +17,22 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
     public sealed class QLearningStrategy : RandomStrategy
     {
         /// <summary>
+        /// Set the temperature computation for Softmax
+        /// </summary>
+        private enum TemperatureStrategies
+        {
+            /// <summary>
+            /// Default softmax without any temperature
+            /// </summary>
+            Default = 0,
+
+            /// <summary>
+            /// Scale the average based on a lower threshold
+            /// </summary>
+            ScaledAverage
+        }
+
+        /// <summary>
         /// Determine the abstraction used during exploration.
         /// </summary>
         private readonly AbstractionLevel AbstractionLevel;
@@ -80,6 +96,16 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
         private readonly double Gamma;
 
         /// <summary>
+        /// Set the strategy used for temperature computation for Softmax.
+        /// </summary>
+        private readonly TemperatureStrategies TemperatureStrategy;
+
+        /// <summary>
+        /// The threshold for performing scaled average.
+        /// </summary>
+        private readonly double ScaledAverageLowerThreshold;
+
+        /// <summary>
         /// The op value denoting a true boolean choice.
         /// </summary>
         private readonly ulong TrueChoiceOpValue;
@@ -116,6 +142,11 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
         private int Epochs;
 
         /// <summary>
+        /// Resets all QValues after this many iterations.
+        /// </summary>
+        private readonly int ResetQValuesThreshold;
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="QLearningStrategy"/> class.
         /// It uses the specified random number generator.
         /// </summary>
@@ -134,6 +165,8 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
             this.PreviousOperation = 0;
             this.LearningRate = 0.3;
             this.Gamma = 0.7;
+            this.TemperatureStrategy = TemperatureStrategies.ScaledAverage;
+            this.ScaledAverageLowerThreshold = -40;
             this.TrueChoiceOpValue = ulong.MaxValue;
             this.FalseChoiceOpValue = ulong.MaxValue - 1;
             this.MinIntegerChoiceOpValue = ulong.MaxValue - 2;
@@ -141,6 +174,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
             this.FailureInjectionReward = -1000;
             this.BasicActionReward = -1;
             this.Epochs = 0;
+            this.ResetQValuesThreshold = 10000;
         }
 
         /// <summary>
@@ -258,9 +292,29 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
         private int ChooseQValueIndexFromDistribution(List<double> qValues)
         {
             double sum = 0;
+            double temperature = 1;
+            if (this.TemperatureStrategy == TemperatureStrategies.ScaledAverage)
+            {
+                // double temperature = average < lowerThreshold ? Math.Ceiling(Math.Log10(average / lowerThreshold)) : 1;
+                double average = qValues.Average();
+                if (average < this.ScaledAverageLowerThreshold)
+                {
+                    // The average is too low, scale the average up.
+                    temperature = 10;
+                    int exp = 1;
+                    while (average < this.ScaledAverageLowerThreshold)
+                    {
+                        average /= temperature;
+                        exp++;
+                    }
+
+                    temperature = Math.Pow(temperature, exp);
+                }
+            }
+
             for (int i = 0; i < qValues.Count; i++)
             {
-                qValues[i] = Math.Exp(qValues[i]);
+                qValues[i] = Math.Exp(qValues[i] / temperature);
                 sum += qValues[i];
             }
 
@@ -433,7 +487,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
             this.Epochs++;
 
             // When using the /explore flag, reset all learned data on finding a bug.
-            if (this.IsBugFound)
+            if (this.IsBugFound || (this.Epochs % this.ResetQValuesThreshold == 0))
             {
                 this.ResetQLearning();
             }
@@ -469,7 +523,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
                 if (node.Next.Next is null && this.IsBugFound)
                 {
                     reward = this.BugStateReward;
-                    Console.WriteLine($"==================> ({state}) Reward of {nextOp} ({nextState}) is {reward} [bug]");
+                    //Console.WriteLine($"==================> ({state}) Reward of {nextOp} ({nextState}) is {reward} [bug]");
                 }
                 else
                 {
@@ -497,18 +551,24 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
                 idx++;
             }
 
+            /*
             if (this.IsBugFound || this.Epochs == 10 || this.Epochs == 20 || this.Epochs == 40 || this.Epochs == 80 ||
                 this.Epochs == 160 || this.Epochs == 320 || this.Epochs == 640 || this.Epochs == 1280 || this.Epochs == 2560 ||
-                this.Epochs == 5120 || this.Epochs == 10240 || this.Epochs == 20480 || this.Epochs == 40960 ||
+                this.Epochs == 5120 || this.Epochs == 10240 || this.Epochs == 20000 || this.Epochs == 20480 || this.Epochs == 40960 ||
                 this.Epochs == 81920 || this.Epochs == 163840)
             {
                 Console.WriteLine($"==================> #{this.Epochs} ExecutionPath (size: {this.ExecutionPath.Count})");
-                Console.WriteLine($"==================> #{this.Epochs} UniqueStates (size: {this.UniqueStates.Count})");
                 Console.WriteLine($"==================> #{this.Epochs} Default States (size: {this.DefaultHashedStates.Count})");
                 Console.WriteLine($"==================> #{this.Epochs} Inbox-Only States (size: {this.InboxOnlyHashedStates.Count})");
                 Console.WriteLine($"==================> #{this.Epochs} Custom States (size: {this.CustomHashedStates.Count})");
                 Console.WriteLine($"==================> #{this.Epochs} Full States (size: {this.FullHashedStates.Count})");
+
+                // Print debugging info on numerical instabilities
+                //Console.WriteLine($"==================> #Instability {this.TemperatureStrategy}: {this.NumInstabilities}");
+                //Console.WriteLine($"==================> #Summations {this.TemperatureStrategy}: {this.NumSummations}");
+                //Console.WriteLine($"==================> Fractional instability {this.TemperatureStrategy}: {this.NumInstabilities / this.NumSummations}");
             }
+            */
         }
 
         /// <summary>
