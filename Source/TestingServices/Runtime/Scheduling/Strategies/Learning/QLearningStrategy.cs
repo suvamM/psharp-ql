@@ -517,7 +517,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
                 if (node.Next.Next is null && this.IsBugFound)
                 {
                     reward = this.BugStateReward;
-                    //Console.WriteLine($"==================> ({state}) Reward of {nextOp} ({nextState}) is {reward} [bug]");
+                    Console.WriteLine($"==================> ({state}) Reward of {nextOp} ({nextState}) is {reward} [bug]");
                 }
                 else
                 {
