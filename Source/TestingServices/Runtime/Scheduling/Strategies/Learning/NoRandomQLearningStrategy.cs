@@ -315,7 +315,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
             this.Epochs++;
 
             // When using the /explore flag, reset all learned data on finding a bug.
-            if (this.IsBugFound || (this.Epochs % this.ResetQValuesThreshold == 0))
+            if (this.IsBugFound)
             {
                 this.ResetQLearning();
             }
