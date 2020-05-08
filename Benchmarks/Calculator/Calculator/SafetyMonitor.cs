@@ -8,6 +8,11 @@ namespace Calculator
 {
     internal class SafetyMonitor : Monitor
     {
+        public static Dictionary<int, int> ValuesCount = new Dictionary<int, int>();
+        public static Dictionary<Operation, int> ActionsFreq = new Dictionary<Operation, int>();
+
+        private int Value = 0;
+
         protected override int HashedState
         {
             get
@@ -19,10 +24,6 @@ namespace Calculator
             }
         }
 
-        private int Value = 0;
-        public static Dictionary<int, int> ValuesCount = new Dictionary<int, int>();
-        public static Dictionary<Operation, int> ActionsFreq = new Dictionary<Operation, int>();
-
         [Start]
         [OnEntry(nameof(DoInit))]
         [OnEventDoAction(typeof(OpEvent), nameof(HandleMsg))]
@@ -31,9 +32,9 @@ namespace Calculator
         private void DoInit()
         {
             this.Value = 0;
-            if (!ValuesCount.ContainsKey(Value))
+            if (!ValuesCount.ContainsKey(this.Value))
             {
-                ValuesCount.Add(Value, 1);
+                ValuesCount.Add(this.Value, 1);
             }
             if (!ActionsFreq.ContainsKey(Operation.Add))
             {
@@ -59,41 +60,41 @@ namespace Calculator
 
         private void HandleMsg()
         {
-            switch ((ReceivedEvent as OpEvent).op)
+            switch ((ReceivedEvent as OpEvent).Op)
             {
                 case Operation.Add:
                     ActionsFreq[Operation.Add]++;
-                    Value++;
+                    this.Value++;
                     break;
 
                 case Operation.Sub:
                     ActionsFreq[Operation.Sub]++;
-                    Value--;
+                    this.Value--;
                     break;
 
                 case Operation.Mult:
                     ActionsFreq[Operation.Mult]++;
-                    Value *= 2;
+                    this.Value *= 2;
                     break;
 
                 case Operation.Div:
                     ActionsFreq[Operation.Div]++;
-                    Value /= 2;
+                    this.Value /= 2;
                     break;
 
                 case Operation.Reset:
                     ActionsFreq[Operation.Reset]++;
-                    Value = 0;
+                    this.Value = 0;
                     break;
             }
 
-            if (!ValuesCount.ContainsKey(Value))
+            if (!ValuesCount.ContainsKey(this.Value))
             {
-                ValuesCount.Add(Value, 1);
+                ValuesCount.Add(this.Value, 1);
             }
             else
             {
-                ValuesCount[Value] += 1;
+                ValuesCount[this.Value] += 1;
             }
         }
     }

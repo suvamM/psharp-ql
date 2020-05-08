@@ -323,27 +323,29 @@ namespace Microsoft.PSharp.TestingServices
             }
             else if (this.Configuration.SchedulingStrategy == SchedulingStrategy.QLearning)
             {
-                this.Strategy = new QLearningStrategy(this.Configuration.AbstractionLevel,
-                    this.Configuration.MaxFairSchedulingSteps, this.RandomNumberGenerator);
+                this.Strategy = new QLearningStrategy(this.Configuration.MaxFairSchedulingSteps, this.Configuration.AbstractionLevel,
+                    this.Configuration.DistributionScalingStrategy, this.RandomNumberGenerator);
             }
             else if (this.Configuration.SchedulingStrategy == SchedulingStrategy.FairQLearning)
             {
                 var prefixLength = this.Configuration.SafetyPrefixBound == 0 ?
                     this.Configuration.MaxUnfairSchedulingSteps : this.Configuration.SafetyPrefixBound;
-                var prefixStrategy = new QLearningStrategy(this.Configuration.AbstractionLevel,
-                    prefixLength, this.RandomNumberGenerator);
+                var prefixStrategy = new QLearningStrategy(prefixLength, this.Configuration.AbstractionLevel,
+                    this.Configuration.DistributionScalingStrategy, this.RandomNumberGenerator);
                 var suffixStrategy = new RandomStrategy(this.Configuration.MaxFairSchedulingSteps, this.RandomNumberGenerator);
                 this.Strategy = new ComboStrategy(prefixStrategy, suffixStrategy);
             }
             else if (this.Configuration.SchedulingStrategy == SchedulingStrategy.NoRandomQLearning)
             {
-                this.Strategy = new NoRandomQLearningStrategy(this.Configuration.MaxFairSchedulingSteps, this.RandomNumberGenerator);
+                this.Strategy = new NoRandomQLearningStrategy(this.Configuration.MaxFairSchedulingSteps,
+                    this.Configuration.DistributionScalingStrategy, this.RandomNumberGenerator);
             }
             else if (this.Configuration.SchedulingStrategy == SchedulingStrategy.FairNoRandomQLearning)
             {
                 var prefixLength = this.Configuration.SafetyPrefixBound == 0 ?
                     this.Configuration.MaxUnfairSchedulingSteps : this.Configuration.SafetyPrefixBound;
-                var prefixStrategy = new NoRandomQLearningStrategy(prefixLength, this.RandomNumberGenerator);
+                var prefixStrategy = new NoRandomQLearningStrategy(prefixLength, this.Configuration.DistributionScalingStrategy,
+                    this.RandomNumberGenerator);
                 var suffixStrategy = new RandomStrategy(this.Configuration.MaxFairSchedulingSteps, this.RandomNumberGenerator);
                 this.Strategy = new ComboStrategy(prefixStrategy, suffixStrategy);
             }

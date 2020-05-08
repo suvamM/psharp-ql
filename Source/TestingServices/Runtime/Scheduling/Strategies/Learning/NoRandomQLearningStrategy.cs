@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
 {
@@ -15,22 +16,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
     /// </summary>
     public sealed class NoRandomQLearningStrategy : RandomStrategy
     {
-        /// <summary>
-        /// Set the temperature computation for Softmax
-        /// </summary>
-        private enum TemperatureStrategies
-        {
-            /// <summary>
-            /// Default softmax without any temperature
-            /// </summary>
-            Default = 0,
-
-            /// <summary>
-            /// Scale the average based on a lower threshold
-            /// </summary>
-            ScaledAverage
-        }
-
         /// <summary>
         /// Map from program states to a map from next operations to their quality values.
         /// </summary>
@@ -70,9 +55,9 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
         private readonly double Gamma;
 
         /// <summary>
-        /// Set the strategy used for temperature computation for Softmax.
+        /// The distribution scaling strategy for Softmax.
         /// </summary>
-        private readonly TemperatureStrategies TemperatureStrategy;
+        private readonly DistributionScaling DistributionScaling;
 
         /// <summary>
         /// The threshold for performing scaled average.
@@ -104,7 +89,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
         /// Initializes a new instance of the <see cref="NoRandomQLearningStrategy"/> class.
         /// It uses the specified random number generator.
         /// </summary>
-        public NoRandomQLearningStrategy(int maxSteps, IRandomNumberGenerator random)
+        public NoRandomQLearningStrategy(int maxSteps, DistributionScaling distributionScaling, IRandomNumberGenerator random)
             : base(maxSteps, random)
         {
             this.OperationQTable = new Dictionary<int, Dictionary<ulong, double>>();
@@ -114,7 +99,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
             this.PreviousOperation = 0;
             this.LearningRate = 0.3;
             this.Gamma = 0.7;
-            this.TemperatureStrategy = TemperatureStrategies.ScaledAverage;
+            this.DistributionScaling = distributionScaling;
             this.ScaledAverageLowerThreshold = -40;
             this.BugStateReward = -1000;
             this.FailureInjectionReward = -1000;
@@ -184,7 +169,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
         {
             double sum = 0;
             double temperature = 1;
-            if (this.TemperatureStrategy == TemperatureStrategies.ScaledAverage)
+            if (this.DistributionScaling == DistributionScaling.ScaledAverage)
             {
                 // double temperature = average < lowerThreshold ? Math.Ceiling(Math.Log10(average / lowerThreshold)) : 1;
                 double average = qValues.Average();

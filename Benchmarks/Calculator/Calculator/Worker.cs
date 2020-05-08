@@ -7,7 +7,7 @@ namespace Calculator
 {
     internal class Worker : Machine
     {
-        Operation op;
+        Operation Op;
 
         [Start]
         [OnEntry(nameof(DoInit))]
@@ -16,13 +16,13 @@ namespace Calculator
 
         private void DoInit()
         {
-            this.op = (ReceivedEvent as OpEvent).op;
+            this.Op = (ReceivedEvent as OpEvent).Op;
             this.Send(this.Id, new LoopEvent());
         }
 
         private void Loop()
         {
-            this.Monitor(typeof(SafetyMonitor), new OpEvent(op));
+            this.Monitor(typeof(SafetyMonitor), new OpEvent(this.Op));
             this.Send(this.Id, new LoopEvent());
         }
     }

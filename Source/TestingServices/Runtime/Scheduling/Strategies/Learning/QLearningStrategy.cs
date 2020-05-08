@@ -17,27 +17,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
     public sealed class QLearningStrategy : RandomStrategy
     {
         /// <summary>
-        /// Set the temperature computation for Softmax
-        /// </summary>
-        private enum TemperatureStrategies
-        {
-            /// <summary>
-            /// Default softmax without any temperature
-            /// </summary>
-            Default = 0,
-
-            /// <summary>
-            /// Scale the average based on a lower threshold
-            /// </summary>
-            ScaledAverage
-        }
-
-        /// <summary>
-        /// Determine the abstraction used during exploration.
-        /// </summary>
-        private readonly AbstractionLevel AbstractionLevel;
-
-        /// <summary>
         /// Map from program states to a map from next operations to their quality values.
         /// </summary>
         private readonly Dictionary<int, Dictionary<ulong, double>> OperationQTable;
@@ -96,9 +75,14 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
         private readonly double Gamma;
 
         /// <summary>
-        /// Set the strategy used for temperature computation for Softmax.
+        /// Determine the abstraction used during exploration.
         /// </summary>
-        private readonly TemperatureStrategies TemperatureStrategy;
+        private readonly AbstractionLevel AbstractionLevel;
+
+        /// <summary>
+        /// The distribution scaling strategy for Softmax.
+        /// </summary>
+        private readonly DistributionScaling DistributionScaling;
 
         /// <summary>
         /// The threshold for performing scaled average.
@@ -145,10 +129,10 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
         /// Initializes a new instance of the <see cref="QLearningStrategy"/> class.
         /// It uses the specified random number generator.
         /// </summary>
-        public QLearningStrategy(AbstractionLevel abstractionLevel, int maxSteps, IRandomNumberGenerator random)
+        public QLearningStrategy(int maxSteps, AbstractionLevel abstractionLevel, DistributionScaling distributionScaling,
+            IRandomNumberGenerator random)
             : base(maxSteps, random)
         {
-            this.AbstractionLevel = abstractionLevel;
             this.OperationQTable = new Dictionary<int, Dictionary<ulong, double>>();
             this.ExecutionPath = new LinkedList<(ulong, AsyncOperationType, int)>();
             this.TransitionFrequencies = new Dictionary<int, ulong>();
@@ -160,7 +144,8 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
             this.PreviousOperation = 0;
             this.LearningRate = 0.3;
             this.Gamma = 0.7;
-            this.TemperatureStrategy = TemperatureStrategies.ScaledAverage;
+            this.AbstractionLevel = abstractionLevel;
+            this.DistributionScaling = distributionScaling;
             this.ScaledAverageLowerThreshold = -40;
             this.TrueChoiceOpValue = ulong.MaxValue;
             this.FalseChoiceOpValue = ulong.MaxValue - 1;
@@ -287,7 +272,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
         {
             double sum = 0;
             double temperature = 1;
-            if (this.TemperatureStrategy == TemperatureStrategies.ScaledAverage)
+            if (this.DistributionScaling == DistributionScaling.ScaledAverage)
             {
                 // double temperature = average < lowerThreshold ? Math.Ceiling(Math.Log10(average / lowerThreshold)) : 1;
                 double average = qValues.Average();

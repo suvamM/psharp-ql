@@ -197,6 +197,23 @@ namespace Microsoft.PSharp.Utilities
                         "'-abstraction-level:[x]', where [x] is 'default', 'inbox-only', 'custom' or 'full'.");
                 }
             }
+            else if (IsMatch(option, @"^[\/|-]distribution-scaling:") && option.Length > 23)
+            {
+                string absLevel = option.Substring(22);
+                if (IsMatch(absLevel, @"^none"))
+                {
+                    this.Configuration.DistributionScalingStrategy = DistributionScaling.None;
+                }
+                else if (IsMatch(absLevel, @"^sa$"))
+                {
+                    this.Configuration.DistributionScalingStrategy = DistributionScaling.ScaledAverage;
+                }
+                else
+                {
+                    Error.ReportAndExit("Please give a valid distribution scaling strategy " +
+                        "'-distribution-scaling:[x]', where [x] is 'none' or 'sa'.");
+                }
+            }
             else if (IsMatch(option, @"^[\/|-]replay:") && option.Length > 8)
             {
                 string extension = System.IO.Path.GetExtension(option.Substring(8));

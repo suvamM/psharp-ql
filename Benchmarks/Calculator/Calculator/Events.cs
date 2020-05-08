@@ -9,11 +9,11 @@ namespace Calculator
 
     internal class OpEvent : Event
     {
-        public Operation op;
+        public Operation Op;
 
         public OpEvent(Operation op)
         {
-            this.op = op;
+            this.Op = op;
         }
     }
 }

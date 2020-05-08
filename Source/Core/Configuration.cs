@@ -138,6 +138,12 @@ namespace Microsoft.PSharp
         public AbstractionLevel AbstractionLevel;
 
         /// <summary>
+        /// Determine the distribution scaling to be used during exploration.
+        /// </summary>
+        [DataMember]
+        public DistributionScaling DistributionScalingStrategy;
+
+        /// <summary>
         /// Number of scheduling iterations.
         /// </summary>
         [DataMember]
@@ -455,6 +461,7 @@ namespace Microsoft.PSharp
 
             this.SchedulingStrategy = SchedulingStrategy.Random;
             this.AbstractionLevel = AbstractionLevel.Default;
+            this.DistributionScalingStrategy = DistributionScaling.None;
             this.SchedulingIterations = 1;
             this.SchedulingSeed = null;
 
