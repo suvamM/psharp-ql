@@ -4,7 +4,6 @@
 using System;
 using System.Collections;
 using System.IO;
-using Calculator.Common;
 using Microsoft.PSharp;
 
 namespace Calculator
@@ -28,13 +27,22 @@ namespace Calculator
         static int resetCount = 0;
 
         [Test]
-        public static void Execute(IMachineRuntime runtime)
+        public static void Calculate(IMachineRuntime runtime)
         {
             runtime.RegisterMonitor(typeof(SafetyMonitor));
             runtime.CreateMachine(typeof(Worker), new OpEvent(Operation.Add));
             runtime.CreateMachine(typeof(Worker), new OpEvent(Operation.Sub));
             runtime.CreateMachine(typeof(Worker), new OpEvent(Operation.Mult));
             runtime.CreateMachine(typeof(Worker), new OpEvent(Operation.Div));
+            runtime.CreateMachine(typeof(Worker), new OpEvent(Operation.Reset));
+        }
+
+        [Test]
+        public static void Acculmulate(IMachineRuntime runtime)
+        {
+            runtime.RegisterMonitor(typeof(SafetyMonitor));
+            runtime.CreateMachine(typeof(Worker), new OpEvent(Operation.Add));
+            runtime.CreateMachine(typeof(Worker), new OpEvent(Operation.Mult));
             runtime.CreateMachine(typeof(Worker), new OpEvent(Operation.Reset));
         }
 

@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <Description>Benchmarks to be used for RL evaluation.</Description>
     <AssemblyName>Benchmarks.Calculator</AssemblyName>
@@ -7,9 +7,6 @@
     <RestoreSources>$(RestoreSources);../../bin/nuget</RestoreSources>
     <OutputPath>..\bin\</OutputPath>
   </PropertyGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Common\Common.csproj" />
-  </ItemGroup>
   <ItemGroup>
     <!--<PackageReference Include="Microsoft.PSharp" Version="1.7.0-rl" />-->
     <Reference Include="Microsoft.PSharp">
