@@ -6,7 +6,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
@@ -17,6 +16,22 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
     /// </summary>
     public sealed class QLearningStrategy : RandomStrategy
     {
+        /// <summary>
+        /// Set the temperature computation for Softmax
+        /// </summary>
+        private enum TemperatureStrategies
+        {
+            /// <summary>
+            /// Default softmax without any temperature
+            /// </summary>
+            Default = 0,
+
+            /// <summary>
+            /// Scale the average based on a lower threshold
+            /// </summary>
+            ScaledAverage
+        }
+
         /// <summary>
         /// Determine the abstraction used during exploration.
         /// </summary>
@@ -81,40 +96,14 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
         private readonly double Gamma;
 
         /// <summary>
-        /// Set the temperature computation for Softmax
-        /// </summary>
-        private enum TemperatureStrategies
-        {
-            /// <summary>
-            /// Default softmax without any temperature
-            /// </summary>
-            Default = 0,
-
-            /// <summary>
-            /// Iterative optimal temperature computation based on He et. al. http://ir.nsfc.gov.cn/paperDownload/ZD4786211.pdf
-            /// </summary>
-            IterativeOptimalTemperature,
-
-            /// <summary>
-            /// Scale the average based on a lower threshold
-            /// </summary>
-            ScaledAverage
-        }
-
-        /// <summary>
         /// Set the strategy used for temperature computation for Softmax.
         /// </summary>
         private readonly TemperatureStrategies TemperatureStrategy;
 
         /// <summary>
-        /// Parameter for IterativeOptimalTemp.
+        /// The threshold for performing scaled average.
         /// </summary>
-        private readonly double EnhancementFactor;
-
-        /// <summary>
-        /// Parameter for IterativeOptimalTemp.
-        /// </summary>
-        private readonly double StoppingFactor;
+        private readonly double ScaledAverageLowerThreshold;
 
         /// <summary>
         /// The op value denoting a true boolean choice.
@@ -157,10 +146,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
         /// </summary>
         private readonly int ResetQValuesThreshold;
 
-        // parameters to investigate numerical instabilities
-        private double NumSummations;
-        private double NumInstabilities;
-
         /// <summary>
         /// Initializes a new instance of the <see cref="QLearningStrategy"/> class.
         /// It uses the specified random number generator.
@@ -180,6 +165,8 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
             this.PreviousOperation = 0;
             this.LearningRate = 0.3;
             this.Gamma = 0.7;
+            this.TemperatureStrategy = TemperatureStrategies.ScaledAverage;
+            this.ScaledAverageLowerThreshold = -40;
             this.TrueChoiceOpValue = ulong.MaxValue;
             this.FalseChoiceOpValue = ulong.MaxValue - 1;
             this.MinIntegerChoiceOpValue = ulong.MaxValue - 2;
@@ -188,15 +175,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
             this.BasicActionReward = -1;
             this.Epochs = 0;
             this.ResetQValuesThreshold = 10000;
-
-            // parameters related to computing the temperature for Softmax
-            this.TemperatureStrategy = TemperatureStrategies.ScaledAverage;
-            this.EnhancementFactor = 1.0;
-            this.StoppingFactor = 0.00001;
-
-            // parameters to investigate numerical instabilities
-            this.NumInstabilities = 0.0;
-            this.NumSummations = 0.0;
         }
 
         /// <summary>
@@ -313,12 +291,43 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
         /// </summary>
         private int ChooseQValueIndexFromDistribution(List<double> qValues)
         {
-            List<double> probs = this.ComputeProbabilityDistribution(qValues);
             double sum = 0;
+            double temperature = 1;
+            if (this.TemperatureStrategy == TemperatureStrategies.ScaledAverage)
+            {
+                // double temperature = average < lowerThreshold ? Math.Ceiling(Math.Log10(average / lowerThreshold)) : 1;
+                double average = qValues.Average();
+                if (average < this.ScaledAverageLowerThreshold)
+                {
+                    // The average is too low, scale the average up.
+                    temperature = 10;
+                    int exp = 1;
+                    while (average < this.ScaledAverageLowerThreshold)
+                    {
+                        average /= temperature;
+                        exp++;
+                    }
+
+                    temperature = Math.Pow(temperature, exp);
+                }
+            }
+
+            for (int i = 0; i < qValues.Count; i++)
+            {
+                qValues[i] = Math.Exp(qValues[i] / temperature);
+                sum += qValues[i];
+            }
+
+            for (int i = 0; i < qValues.Count; i++)
+            {
+                qValues[i] /= sum;
+            }
+
+            sum = 0;
 
             // First, change the shape of the distribution probability array to be cumulative.
             // For example, instead of [0.1, 0.2, 0.3, 0.4], we get [0.1, 0.3, 0.6, 1.0].
-            var cumulative = probs.Select(c =>
+            var cumulative = qValues.Select(c =>
             {
                 var result = c + sum;
                 sum += c;
@@ -348,162 +357,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
             }
 
             return idx;
-        }
-
-        /// <summary>
-        /// Returns a probability distribution corresponding to an input vector using Softmax
-        /// </summary>
-        private List<double> ComputeProbabilityDistribution (List<double> qValues)
-        {
-            if (this.TemperatureStrategy == TemperatureStrategies.ScaledAverage)
-            {
-                double lowerThreshold = -40;
-                double scale = 10;
-
-                // the average is too low, scale the average up
-                if (qValues.Average() < lowerThreshold)
-                {
-                    double qAvg = qValues.Average();
-                    int exp = 1;
-
-                    while (qAvg < lowerThreshold)
-                    {
-                        qAvg /= scale;
-                        exp++;
-                    }
-
-                    scale = Math.Pow(scale, exp);
-                }
-
-                // double temperature = qValues.Average() < lowerThreshold ? Math.Ceiling(Math.Log10(qValues.Average() / lowerThreshold)) : 1;
-                double temperature = qValues.Average() < lowerThreshold ? scale : 1;
-
-                List<double> origProbs = new List<double>();
-
-                for (int i = 0; i < qValues.Count; i++)
-                {
-                    origProbs.Add(Math.Exp(qValues[i] / temperature));
-                }
-
-                double sum = origProbs.Sum();
-
-                // Debug: the following parameters are for debugging numerical instabilities
-                this.NumSummations++;
-
-                if (sum == 0.0)
-                {
-                    this.NumInstabilities++;
-                }
-
-                for (int i = 0; i < origProbs.Count; i++)
-                {
-                    origProbs[i] /= sum;
-                }
-
-                return origProbs;
-            }
-            else if (this.TemperatureStrategy == TemperatureStrategies.IterativeOptimalTemperature)
-            {
-                double tOpt;
-                List<double> zValues = new List<double>();
-
-                // Calculate z-values corresponding to the q-values
-                double qMin = qValues.Min();
-
-                for (int i = 0; i < qValues.Count; i++)
-                {
-                    zValues.Add(qValues[i] + (2 * Math.Abs(qMin)) + 0.01);
-                }
-
-                double sum = zValues.Sum();
-
-                for (int i = 0; i < zValues.Count; i++)
-                {
-                    zValues[i] /= sum;
-                }
-
-                // compute entropy
-                double hz = 0;
-                for (int i = 0; i < zValues.Count; i++)
-                {
-                    hz += -1.0 * (zValues[i] * Math.Log(zValues[i]));
-                }
-
-                double t0 = 1;
-                do
-                {
-                    tOpt = t0;
-
-                    double numerator = 0;
-                    double denominator1 = 0;
-                    double denominator2 = 0;
-
-                    for (int i = 0; i < zValues.Count; i++)
-                    {
-                        numerator += zValues[i] * Math.Exp(zValues[i] / tOpt);
-                        denominator1 += Math.Exp(zValues[i] / tOpt);
-                    }
-
-                    denominator2 = Math.Log(denominator1) - (hz / (1 + this.EnhancementFactor));
-
-                    t0 = numerator / (denominator1 * denominator2);
-                }
-                while (Math.Abs(tOpt - t0) >= this.StoppingFactor);
-
-                // Probabilities using normalized q-values
-                List<double> normalizedProbs = new List<double>();
-                for (int i = 0; i < qValues.Count; i++)
-                {
-                    normalizedProbs.Add(Math.Exp(zValues[i] / tOpt));
-                }
-
-                sum = normalizedProbs.Sum();
-
-                // Debug: the following parameters are for debugging numerical instabilities
-                this.NumSummations++;
-
-                if (sum == 0.0)
-                {
-                    this.NumInstabilities++;
-                }
-
-                for (int i = 0; i < normalizedProbs.Count; i++)
-                {
-                    normalizedProbs[i] /= sum;
-                }
-
-                return normalizedProbs;
-            }
-            else if (this.TemperatureStrategy == TemperatureStrategies.Default)
-            {
-                List<double> origProbs = new List<double>();
-
-                for (int i = 0; i < qValues.Count; i++)
-                {
-                    origProbs.Add(Math.Exp(qValues[i]));
-                }
-
-                double sum = origProbs.Sum();
-
-                // Debug: the following parameters are for debugging numerical instabilities
-                this.NumSummations++;
-
-                if (sum == 0.0)
-                {
-                    this.NumInstabilities++;
-                }
-
-                for (int i = 0; i < origProbs.Count; i++)
-                {
-                    origProbs[i] /= sum;
-                }
-
-                return origProbs;
-            }
-            else
-            {
-                throw new NotSupportedException($"The specified strategy for computing the temperature is not supported");
-            }
         }
 
         /// <summary>
@@ -698,24 +551,24 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
                 idx++;
             }
 
+            /*
             if (this.IsBugFound || this.Epochs == 10 || this.Epochs == 20 || this.Epochs == 40 || this.Epochs == 80 ||
                 this.Epochs == 160 || this.Epochs == 320 || this.Epochs == 640 || this.Epochs == 1280 || this.Epochs == 2560 ||
                 this.Epochs == 5120 || this.Epochs == 10240 || this.Epochs == 20000 || this.Epochs == 20480 || this.Epochs == 40960 ||
                 this.Epochs == 81920 || this.Epochs == 163840)
             {
-                /*
                 Console.WriteLine($"==================> #{this.Epochs} ExecutionPath (size: {this.ExecutionPath.Count})");
                 Console.WriteLine($"==================> #{this.Epochs} Default States (size: {this.DefaultHashedStates.Count})");
                 Console.WriteLine($"==================> #{this.Epochs} Inbox-Only States (size: {this.InboxOnlyHashedStates.Count})");
                 Console.WriteLine($"==================> #{this.Epochs} Custom States (size: {this.CustomHashedStates.Count})");
                 Console.WriteLine($"==================> #{this.Epochs} Full States (size: {this.FullHashedStates.Count})");
-                */
 
                 // Print debugging info on numerical instabilities
                 //Console.WriteLine($"==================> #Instability {this.TemperatureStrategy}: {this.NumInstabilities}");
                 //Console.WriteLine($"==================> #Summations {this.TemperatureStrategy}: {this.NumSummations}");
                 //Console.WriteLine($"==================> Fractional instability {this.TemperatureStrategy}: {this.NumInstabilities / this.NumSummations}");
             }
+            */
         }
 
         /// <summary>
