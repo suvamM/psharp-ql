@@ -1,12 +1,11 @@
 ﻿// Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
-using Calculator.Common;
 using Microsoft.PSharp;
 
-namespace Accumulator
+namespace Calculator.Common
 {
-    internal class Worker : Machine
+    public class Worker : Machine
     {
         Operation op;
 

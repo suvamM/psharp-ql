@@ -2,12 +2,11 @@
 // Licensed under the MIT License.
 
 using System.Collections.Generic;
-using Calculator.Common;
 using Microsoft.PSharp;
 
-namespace Accumulator
+namespace Calculator.Common
 {
-    internal class SafetyMonitor : Monitor
+    public class SafetyMonitor : Monitor
     {
         protected override int HashedState
         {
