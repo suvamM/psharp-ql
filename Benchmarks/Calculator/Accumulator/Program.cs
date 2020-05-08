@@ -1,7 +1,10 @@
-﻿using System;
+﻿// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
+using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.IO;
+using Calculator.Common;
 using Microsoft.PSharp;
 
 namespace Accumulator
@@ -16,9 +19,9 @@ namespace Accumulator
         public static void Execute(IMachineRuntime runtime)
         {
             runtime.RegisterMonitor(typeof(SafetyMonitor));
-            runtime.CreateMachine(typeof(Worker), new OpEvent(CalcOp.Add));
-            runtime.CreateMachine(typeof(Worker), new OpEvent(CalcOp.Mult));
-            runtime.CreateMachine(typeof(Worker), new OpEvent(CalcOp.Reset));
+            runtime.CreateMachine(typeof(Worker), new OpEvent(Operation.Add));
+            runtime.CreateMachine(typeof(Worker), new OpEvent(Operation.Mult));
+            runtime.CreateMachine(typeof(Worker), new OpEvent(Operation.Reset));
         }
 
         static int iter = 1;
@@ -44,14 +47,14 @@ namespace Accumulator
 
                 string docPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
 
-                int tempAddCount = (SafetyMonitor.ActionsFreq[CalcOp.Add] - addCount);
-                addCount = SafetyMonitor.ActionsFreq[CalcOp.Add];
+                int tempAddCount = (SafetyMonitor.ActionsFreq[Operation.Add] - addCount);
+                addCount = SafetyMonitor.ActionsFreq[Operation.Add];
 
-                int tempMultCount = (SafetyMonitor.ActionsFreq[CalcOp.Mult] - multCount);
-                multCount = SafetyMonitor.ActionsFreq[CalcOp.Mult];
+                int tempMultCount = (SafetyMonitor.ActionsFreq[Operation.Mult] - multCount);
+                multCount = SafetyMonitor.ActionsFreq[Operation.Mult];
 
-                int tempResetCount = (SafetyMonitor.ActionsFreq[CalcOp.Reset] - resetCount);
-                resetCount = SafetyMonitor.ActionsFreq[CalcOp.Reset];
+                int tempResetCount = (SafetyMonitor.ActionsFreq[Operation.Reset] - resetCount);
+                resetCount = SafetyMonitor.ActionsFreq[Operation.Reset];
 
                 using (StreamWriter outputFile = new StreamWriter(Path.Combine(docPath, "actionCoverage.csv"), true))
                 {
@@ -77,116 +80,5 @@ namespace Accumulator
                 }
             }
         }
-    }
-
-    class LoopEvent : Event { }
-
-    enum CalcOp { Add, Mult, Reset };
-
-    class OpEvent : Event
-    {
-        public CalcOp op;
-
-        public OpEvent(CalcOp op)
-        {
-            this.op = op;
-        }
-    }
-
-    internal class Worker : Machine
-    {
-        CalcOp op;
-
-        [Start]
-        [OnEntry(nameof(DoInit))]
-        [OnEventDoAction(typeof(LoopEvent), nameof(Loop))]
-        private class Init : MachineState { }
-
-        private void DoInit()
-        {
-            this.op = (ReceivedEvent as OpEvent).op;
-            this.Send(this.Id, new LoopEvent());
-        }
-
-        private void Loop()
-        {
-            this.Monitor(typeof(SafetyMonitor), new OpEvent(op));
-            this.Send(this.Id, new LoopEvent());
-        }
-    }
-
-    internal class SafetyMonitor : Monitor
-    {
-        protected override int HashedState
-        {
-            get
-            {
-                int hash = 37;
-                hash = (hash * 397) + this.Value;
-                //hash = (hash * 397) + this.Noise;
-                return hash;
-            }
-        }
-
-        private int Value = 0;
-        public static Dictionary<int, int> ValuesCount = new Dictionary<int, int>();
-        public static Dictionary<CalcOp, int> ActionsFreq = new Dictionary<CalcOp, int>();
-
-        [Start]
-        [OnEntry(nameof(DoInit))]
-        [OnEventDoAction(typeof(OpEvent), nameof(HandleMsg))]
-        private class Init : MonitorState { }
-
-        private void DoInit()
-        {
-            this.Value = 0;
-            if (!ValuesCount.ContainsKey(Value))
-            {
-                ValuesCount.Add(Value, 1);
-            }
-            if (!ActionsFreq.ContainsKey(CalcOp.Add))
-            {
-                ActionsFreq.Add(CalcOp.Add, 0);
-            }
-            if (!ActionsFreq.ContainsKey(CalcOp.Mult))
-            {
-                ActionsFreq.Add(CalcOp.Mult, 0);
-            }
-            if (!ActionsFreq.ContainsKey(CalcOp.Reset))
-            {
-                ActionsFreq.Add(CalcOp.Reset, 0);
-            }
-        }
-
-        private void HandleMsg()
-        {
-            switch ((ReceivedEvent as OpEvent).op)
-            {
-                case CalcOp.Add:
-                    ActionsFreq[CalcOp.Add]++;
-                    Value++;
-                    break;
-
-                case CalcOp.Mult:
-                    ActionsFreq[CalcOp.Mult]++;
-                    Value *= 2;
-                    break;
-
-                case CalcOp.Reset:
-                    ActionsFreq[CalcOp.Reset]++;
-                    Value = 0;
-                    break;
-            }
-
-            if (!ValuesCount.ContainsKey(Value))
-            {
-                ValuesCount.Add(Value, 1);
-            }
-            else
-            {
-                ValuesCount[Value] += 1;
-            }
-        }
-
     }
 }

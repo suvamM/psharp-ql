@@ -8,6 +8,9 @@
     <OutputPath>..\bin\</OutputPath>
   </PropertyGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Common\Common.csproj" />
+  </ItemGroup>
+  <ItemGroup>
     <!--<PackageReference Include="Microsoft.PSharp" Version="1.7.0-rl" />-->
     <Reference Include="Microsoft.PSharp">
       <HintPath>..\..\..\bin\net46\Microsoft.PSharp.dll</HintPath>
