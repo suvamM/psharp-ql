@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.PSharp;
 using Microsoft.PSharp.IO;
 
-namespace Calc
+namespace Accumulator
 {
     class Program
     {
@@ -20,12 +20,10 @@ namespace Calc
         [Microsoft.PSharp.Test]
         public static void Execute(IMachineRuntime runtime)
         {
-            runtime.RegisterMonitor(typeof(Calc.SafetyMonitor));
-            runtime.CreateMachine(typeof(Calc.Worker), new eOp(CalcOp.Add));
-            runtime.CreateMachine(typeof(Calc.Worker), new eOp(CalcOp.Sub));
-            runtime.CreateMachine(typeof(Calc.Worker), new eOp(CalcOp.Mult));
-            runtime.CreateMachine(typeof(Calc.Worker), new eOp(CalcOp.Div));
-            runtime.CreateMachine(typeof(Calc.Worker), new eOp(CalcOp.Reset));
+            runtime.RegisterMonitor(typeof(Accumulator.SafetyMonitor));
+            runtime.CreateMachine(typeof(Accumulator.Worker), new eOp(CalcOp.Add));
+            runtime.CreateMachine(typeof(Accumulator.Worker), new eOp(CalcOp.Mult));
+            runtime.CreateMachine(typeof(Accumulator.Worker), new eOp(CalcOp.Reset));
         }
 
         static int iter = 1;
@@ -35,9 +33,7 @@ namespace Calc
         static ArrayList coverage = new ArrayList();
 
         static int addCount = 0;
-        static int subCount = 0;
         static int multCount = 0;
-        static int divCount = 0;
         static int resetCount = 0;
 
         [Microsoft.PSharp.TestIterationDispose]
@@ -53,29 +49,21 @@ namespace Calc
 
                 string docPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
                 int tempAddCount = 0;
-                int tempSubCount = 0;
                 int tempMultCount = 0;
-                int tempDivCount = 0;
                 int tempResetCount = 0;
 
                 tempAddCount = (SafetyMonitor.ActionsFreq[CalcOp.Add] - addCount);
                 addCount = SafetyMonitor.ActionsFreq[CalcOp.Add];
 
-                tempSubCount = (SafetyMonitor.ActionsFreq[CalcOp.Sub] - subCount);
-                subCount = SafetyMonitor.ActionsFreq[CalcOp.Sub];
-
                 tempMultCount = (SafetyMonitor.ActionsFreq[CalcOp.Mult] - multCount);
                 multCount = SafetyMonitor.ActionsFreq[CalcOp.Mult];
-
-                tempDivCount = (SafetyMonitor.ActionsFreq[CalcOp.Div] - divCount);
-                divCount = SafetyMonitor.ActionsFreq[CalcOp.Div];
 
                 tempResetCount = (SafetyMonitor.ActionsFreq[CalcOp.Reset] - resetCount);
                 resetCount = SafetyMonitor.ActionsFreq[CalcOp.Reset];
 
                 using (StreamWriter outputFile = new StreamWriter(Path.Combine(docPath, "actionCoverage.csv"), true))
                 {
-                    string s = iter + "," + tempAddCount + "," + tempSubCount + "," + tempMultCount + "," + tempDivCount + "," + tempResetCount;
+                    string s = $"{iter},  {tempAddCount}, {multCount}, {tempResetCount}";
                     outputFile.WriteLine(s);
                 }
 
@@ -96,8 +84,6 @@ namespace Calc
                 for (int i = 0; i < coverage.Count; i++)
                 {
                     outputFile.WriteLine($"{(i+1)*binSize}, {coverage[i]}");
-                    // Console.WriteLine(i + ": " + coverage[i]);
-
                 }
             }
         }
@@ -105,7 +91,7 @@ namespace Calc
 
     class eLoop : Event { }
 
-    enum CalcOp { Add, Sub, Mult, Div, Reset };
+    enum CalcOp { Add, Mult, Reset };
 
     class eOp : Event
     {
@@ -119,9 +105,6 @@ namespace Calc
 
     internal class Worker : Machine
     {
-        // readonly int max = 10;
-
-        // int cnt = 0;
         CalcOp op;
 
         [Start]
@@ -139,13 +122,6 @@ namespace Calc
         {
             this.Monitor(typeof(SafetyMonitor), new eOp(op));
             this.Send(this.Id, new eLoop());
-            /*
-            cnt++;
-            if (cnt < max)
-            {
-                this.Send(this.Id, new eLoop());
-            }
-            */
         }
     }
 
@@ -154,7 +130,7 @@ namespace Calc
         protected override int HashedState
         {
             get
-            { 
+            {
                 int hash = 37;
                 hash = (hash * 397) + this.Value;
                 //hash = (hash * 397) + this.Noise;
@@ -173,7 +149,7 @@ namespace Calc
 
         private void DoInit()
         {
-            this.Value = 0; 
+            this.Value = 0;
             if (!ValuesCount.ContainsKey(Value))
             {
                 ValuesCount.Add(Value, 1);
@@ -182,17 +158,9 @@ namespace Calc
             {
                 ActionsFreq.Add(CalcOp.Add, 0);
             }
-            if (!ActionsFreq.ContainsKey(CalcOp.Sub))
-            {
-                ActionsFreq.Add(CalcOp.Sub, 0);
-            }
             if (!ActionsFreq.ContainsKey(CalcOp.Mult))
             {
                 ActionsFreq.Add(CalcOp.Mult, 0);
-            }
-            if (!ActionsFreq.ContainsKey(CalcOp.Div))
-            {
-                ActionsFreq.Add(CalcOp.Div, 0);
             }
             if (!ActionsFreq.ContainsKey(CalcOp.Reset))
             {
@@ -209,19 +177,9 @@ namespace Calc
                     Value++;
                     break;
 
-                case CalcOp.Sub:
-                    ActionsFreq[CalcOp.Sub]++;
-                    Value--;
-                    break;
-
                 case CalcOp.Mult:
                     ActionsFreq[CalcOp.Mult]++;
                     Value *= 2;
-                    break;
-
-                case CalcOp.Div:
-                    ActionsFreq[CalcOp.Div]++;
-                    Value /= 2;
                     break;
 
                 case CalcOp.Reset:
