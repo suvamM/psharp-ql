@@ -6,7 +6,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-
 using Microsoft.PSharp.IO;
 
 namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
@@ -19,6 +18,8 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
     /// </summary>
     public sealed class PCTStrategy : ISchedulingStrategy
     {
+        private static PCTStrategy Instance;
+
         /// <summary>
         /// Random number generator.
         /// </summary>
@@ -71,6 +72,11 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
         private bool IsBugFound;
 
         /// <summary>
+        /// If true, not allowed to context switch.
+        /// </summary>
+        private bool IsInsideBarrier;
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="PCTStrategy"/> class. It uses
         /// the default random number generator (seed is based on current time).
         /// </summary>
@@ -95,6 +101,30 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
             this.TransitionFrequencies = new Dictionary<int, ulong>();
             this.Epochs = 0;
             this.IsBugFound = false;
+            this.IsInsideBarrier = false;
+            Instance = this;
+        }
+
+        /// <summary>
+        /// Enters a barrier that keeps executing the current operation.
+        /// </summary>
+        public static void EnterBarrier()
+        {
+            if (Instance != null)
+            {
+                Instance.IsInsideBarrier = true;
+            }
+        }
+
+        /// <summary>
+        /// Exits a barrier that keeps executing the current operation.
+        /// </summary>
+        public static void ExitBarrier()
+        {
+            if (Instance != null)
+            {
+                Instance.IsInsideBarrier = false;
+            }
         }
 
         /// <summary>
@@ -102,6 +132,12 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
         /// </summary>
         public bool GetNext(IAsyncOperation current, List<IAsyncOperation> ops, out IAsyncOperation next)
         {
+            if (this.IsInsideBarrier)
+            {
+                next = current;
+                return true;
+            }
+
             if (!ops.Any(op => op.Status is AsyncOperationStatus.Enabled))
             {
                 // Fail fast if there are no enabled operations.

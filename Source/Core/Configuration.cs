@@ -6,8 +6,6 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
-
-using Microsoft.PSharp.IO;
 using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp
@@ -20,6 +18,11 @@ namespace Microsoft.PSharp
     [Serializable]
     public class Configuration
     {
+        /// <summary>
+        /// The currently used configuration.
+        /// </summary>
+        public static Configuration Current;
+
         /// <summary>
         /// The path to the solution file.
         /// </summary>
@@ -511,6 +514,8 @@ namespace Microsoft.PSharp
             this.EnableColoredConsoleOutput = false;
             this.ThrowInternalExceptions = false;
             this.DisableEnvironmentExit = true;
+
+            Current = this;
         }
 
         /// <summary>

@@ -161,6 +161,12 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
         /// </summary>
         public override bool GetNext(IAsyncOperation current, List<IAsyncOperation> ops, out IAsyncOperation next)
         {
+            if (this.IsInsideBarrier)
+            {
+                next = current;
+                return true;
+            }
+
             if (!ops.Any(op => op.Status is AsyncOperationStatus.Enabled))
             {
                 // Fail fast if there are no enabled operations.

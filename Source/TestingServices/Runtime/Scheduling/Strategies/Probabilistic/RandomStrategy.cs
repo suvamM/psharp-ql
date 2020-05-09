@@ -14,6 +14,8 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
     /// </summary>
     public class RandomStrategy : ISchedulingStrategy
     {
+        private static RandomStrategy Instance;
+
         /// <summary>
         /// Name of test.
         /// </summary>
@@ -56,6 +58,11 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
         public static readonly int BucketSize = 20;
 
         /// <summary>
+        /// If true, not allowed to context switch.
+        /// </summary>
+        protected bool IsInsideBarrier;
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="RandomStrategy"/> class.
         /// It uses the specified random number generator.
         /// </summary>
@@ -67,6 +74,30 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
             this.ScheduledSteps = 0;
             this.IsBugFound = false;
             this.Epochs = 0;
+            this.IsInsideBarrier = false;
+            Instance = this;
+        }
+
+        /// <summary>
+        /// Enters a barrier that keeps executing the current operation.
+        /// </summary>
+        public static void EnterBarrier()
+        {
+            if (Instance != null)
+            {
+                Instance.IsInsideBarrier = true;
+            }
+        }
+
+        /// <summary>
+        /// Exits a barrier that keeps executing the current operation.
+        /// </summary>
+        public static void ExitBarrier()
+        {
+            if (Instance != null)
+            {
+                Instance.IsInsideBarrier = false;
+            }
         }
 
         /// <summary>
@@ -74,6 +105,12 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
         /// </summary>
         public virtual bool GetNext(IAsyncOperation current, List<IAsyncOperation> ops, out IAsyncOperation next)
         {
+            if (this.IsInsideBarrier)
+            {
+                next = current;
+                return true;
+            }
+
             var enabledOperations = ops.Where(op => op.Status is AsyncOperationStatus.Enabled).ToList();
             if (enabledOperations.Count == 0)
             {
