@@ -10,12 +10,12 @@ namespace Calculator
     internal class SetupEvent : Event
     {
         public readonly Operation Op;
-        public readonly int? Counter;
+        public readonly int? NumActions;
 
-        public SetupEvent(Operation op, int? counter = null)
+        public SetupEvent(Operation op, int? numActions = null)
         {
             this.Op = op;
-            this.Counter = counter;
+            this.NumActions = numActions;
         }
     }
 

@@ -8,7 +8,7 @@ namespace Calculator
     internal class Worker : Machine
     {
         Operation Op;
-        int? Counter;
+        int? NumActions;
 
         [Start]
         [OnEntry(nameof(DoInit))]
@@ -18,23 +18,24 @@ namespace Calculator
         private void DoInit()
         {
             this.Op = (ReceivedEvent as SetupEvent).Op;
-            this.Counter = (ReceivedEvent as SetupEvent).Counter;
+            this.NumActions = (ReceivedEvent as SetupEvent).NumActions;
             this.Send(this.Id, new LoopEvent());
         }
 
         private void Loop()
         {
-            this.Monitor(typeof(ValueMonitor), new OpEvent(this.Op));
-            if (this.Counter.HasValue)
+            if (this.NumActions.HasValue)
             {
-                if (this.Counter > 0)
+                if (this.NumActions > 0)
                 {
+                    this.Monitor(typeof(ValueMonitor), new OpEvent(this.Op));
                     this.Send(this.Id, new LoopEvent());
-                    this.Counter--;
+                    this.NumActions--;
                 }
             }
-            else
+            else if (ValueMonitor.NumActions > 0)
             {
+                this.Monitor(typeof(ValueMonitor), new OpEvent(this.Op));
                 this.Send(this.Id, new LoopEvent());
             }
         }

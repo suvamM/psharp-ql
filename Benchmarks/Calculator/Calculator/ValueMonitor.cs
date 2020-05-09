@@ -10,12 +10,13 @@ namespace Calculator
     {
         public static Dictionary<int, int> ValuesCount = new Dictionary<int, int>();
         public static Dictionary<Operation, int> ActionsFreq = new Dictionary<Operation, int>();
+        public static int NumActions;
 
+        private readonly int MinValue = -5000;
+        private readonly int MaxValue = 5000;
         private int Value = 0;
 
-        //protected override int HashedState => this.Value;
         protected override int HashedState => this.Value.GetHashCode();
-        //protected override int HashedState => 589 + this.Value.GetHashCode();
 
         [Start]
         [OnEntry(nameof(DoInit))]
@@ -53,6 +54,9 @@ namespace Calculator
 
         private void HandleMsg()
         {
+            NumActions--;
+            this.Assert(NumActions >= 0, $"NumActions: {NumActions}");
+
             switch ((ReceivedEvent as OpEvent).Op)
             {
                 case Operation.Add:
@@ -79,6 +83,15 @@ namespace Calculator
                     ActionsFreq[Operation.Reset]++;
                     this.Value = 0;
                     break;
+            }
+
+            if (this.Value > this.MaxValue)
+            {
+                this.Value = this.MaxValue;
+            }
+            else if (this.Value < this.MinValue)
+            {
+                this.Value = this.MinValue;
             }
 
             if (!ValuesCount.ContainsKey(this.Value))

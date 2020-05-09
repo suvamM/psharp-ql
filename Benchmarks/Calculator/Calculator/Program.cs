@@ -34,6 +34,8 @@ namespace Calculator
             PCTStrategy.EnterBarrier();
 
             runtime.RegisterMonitor(typeof(ValueMonitor));
+            ValueMonitor.NumActions = 500;
+
             runtime.CreateMachine(typeof(Worker), new SetupEvent(Operation.Add));
             runtime.CreateMachine(typeof(Worker), new SetupEvent(Operation.Sub));
             runtime.CreateMachine(typeof(Worker), new SetupEvent(Operation.Mult));
@@ -51,26 +53,13 @@ namespace Calculator
             PCTStrategy.EnterBarrier();
 
             runtime.RegisterMonitor(typeof(ValueMonitor));
+            ValueMonitor.NumActions = 500;
+
             runtime.CreateMachine(typeof(Worker), new SetupEvent(Operation.Add, 100));
             runtime.CreateMachine(typeof(Worker), new SetupEvent(Operation.Sub, 100));
             runtime.CreateMachine(typeof(Worker), new SetupEvent(Operation.Mult, 100));
             runtime.CreateMachine(typeof(Worker), new SetupEvent(Operation.Div, 100));
             runtime.CreateMachine(typeof(Worker), new SetupEvent(Operation.Reset, 100));
-
-            RandomStrategy.ExitBarrier();
-            PCTStrategy.ExitBarrier();
-        }
-
-        [Test]
-        public static void Acculmulate(IMachineRuntime runtime)
-        {
-            RandomStrategy.EnterBarrier();
-            PCTStrategy.EnterBarrier();
-
-            runtime.RegisterMonitor(typeof(ValueMonitor));
-            runtime.CreateMachine(typeof(Worker), new SetupEvent(Operation.Add));
-            runtime.CreateMachine(typeof(Worker), new SetupEvent(Operation.Mult));
-            runtime.CreateMachine(typeof(Worker), new SetupEvent(Operation.Reset));
 
             RandomStrategy.ExitBarrier();
             PCTStrategy.ExitBarrier();
