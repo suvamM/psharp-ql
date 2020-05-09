@@ -6,23 +6,16 @@ using Microsoft.PSharp;
 
 namespace Calculator
 {
-    internal class SafetyMonitor : Monitor
+    internal class ValueMonitor : Monitor
     {
         public static Dictionary<int, int> ValuesCount = new Dictionary<int, int>();
         public static Dictionary<Operation, int> ActionsFreq = new Dictionary<Operation, int>();
 
         private int Value = 0;
 
-        protected override int HashedState
-        {
-            get
-            {
-                int hash = 37;
-                hash = (hash * 397) + this.Value;
-                //hash = (hash * 397) + this.Noise;
-                return hash;
-            }
-        }
+        //protected override int HashedState => this.Value;
+        protected override int HashedState => this.Value.GetHashCode();
+        //protected override int HashedState => 589 + this.Value.GetHashCode();
 
         [Start]
         [OnEntry(nameof(DoInit))]

@@ -5,6 +5,7 @@ using System;
 using System.Collections;
 using System.IO;
 using Microsoft.PSharp;
+using Microsoft.PSharp.TestingServices.Scheduling.Strategies;
 
 namespace Calculator
 {
@@ -12,6 +13,7 @@ namespace Calculator
     {
         static string ActionCoverageFile;
         static string StateCoverageFile;
+        static string ValueFrequenciesFile;
 
         static int Iteration = 1;
         static readonly int BinSize = 100;
@@ -28,28 +30,59 @@ namespace Calculator
         [Test]
         public static void Calculate(IMachineRuntime runtime)
         {
-            runtime.RegisterMonitor(typeof(SafetyMonitor));
-            runtime.CreateMachine(typeof(Worker), new OpEvent(Operation.Add));
-            runtime.CreateMachine(typeof(Worker), new OpEvent(Operation.Sub));
-            runtime.CreateMachine(typeof(Worker), new OpEvent(Operation.Mult));
-            runtime.CreateMachine(typeof(Worker), new OpEvent(Operation.Div));
-            runtime.CreateMachine(typeof(Worker), new OpEvent(Operation.Reset));
+            RandomStrategy.EnterBarrier();
+            PCTStrategy.EnterBarrier();
+
+            runtime.RegisterMonitor(typeof(ValueMonitor));
+            runtime.CreateMachine(typeof(Worker), new SetupEvent(Operation.Add));
+            runtime.CreateMachine(typeof(Worker), new SetupEvent(Operation.Sub));
+            runtime.CreateMachine(typeof(Worker), new SetupEvent(Operation.Mult));
+            runtime.CreateMachine(typeof(Worker), new SetupEvent(Operation.Div));
+            runtime.CreateMachine(typeof(Worker), new SetupEvent(Operation.Reset));
+
+            RandomStrategy.ExitBarrier();
+            PCTStrategy.ExitBarrier();
+        }
+
+        [Test]
+        public static void CalculateWithCounter(IMachineRuntime runtime)
+        {
+            RandomStrategy.EnterBarrier();
+            PCTStrategy.EnterBarrier();
+
+            runtime.RegisterMonitor(typeof(ValueMonitor));
+            runtime.CreateMachine(typeof(Worker), new SetupEvent(Operation.Add, 100));
+            runtime.CreateMachine(typeof(Worker), new SetupEvent(Operation.Sub, 100));
+            runtime.CreateMachine(typeof(Worker), new SetupEvent(Operation.Mult, 100));
+            runtime.CreateMachine(typeof(Worker), new SetupEvent(Operation.Div, 100));
+            runtime.CreateMachine(typeof(Worker), new SetupEvent(Operation.Reset, 100));
+
+            RandomStrategy.ExitBarrier();
+            PCTStrategy.ExitBarrier();
         }
 
         [Test]
         public static void Acculmulate(IMachineRuntime runtime)
         {
-            runtime.RegisterMonitor(typeof(SafetyMonitor));
-            runtime.CreateMachine(typeof(Worker), new OpEvent(Operation.Add));
-            runtime.CreateMachine(typeof(Worker), new OpEvent(Operation.Mult));
-            runtime.CreateMachine(typeof(Worker), new OpEvent(Operation.Reset));
+            RandomStrategy.EnterBarrier();
+            PCTStrategy.EnterBarrier();
+
+            runtime.RegisterMonitor(typeof(ValueMonitor));
+            runtime.CreateMachine(typeof(Worker), new SetupEvent(Operation.Add));
+            runtime.CreateMachine(typeof(Worker), new SetupEvent(Operation.Mult));
+            runtime.CreateMachine(typeof(Worker), new SetupEvent(Operation.Reset));
+
+            RandomStrategy.ExitBarrier();
+            PCTStrategy.ExitBarrier();
         }
 
         [TestInit]
         public static void Start()
         {
-            ActionCoverageFile = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "actionCoverage.csv");
-            StateCoverageFile = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "stateCoverage.csv");
+            string strategy = Configuration.Current.SchedulingStrategy.ToString().ToLower();
+            ActionCoverageFile = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), $"action_coverage_{strategy}.csv");
+            StateCoverageFile = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), $"state_coverage_{strategy}.csv");
+            ValueFrequenciesFile = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), $"value_frequences_{strategy}.csv");
 
             try
             {
@@ -61,6 +94,11 @@ namespace Calculator
                 if (File.Exists(StateCoverageFile))
                 {
                     File.Delete(StateCoverageFile);
+                }
+
+                if (File.Exists(ValueFrequenciesFile))
+                {
+                    File.Delete(ValueFrequenciesFile);
                 }
             }
             catch (UnauthorizedAccessException)
@@ -79,22 +117,22 @@ namespace Calculator
                 Iteration++;
                 if (Iteration % BinSize == 0)
                 {
-                    Coverage.Add(SafetyMonitor.ValuesCount.Keys.Count);
+                    Coverage.Add(ValueMonitor.ValuesCount.Keys.Count);
 
-                    int tempAddCount = (SafetyMonitor.ActionsFreq[Operation.Add] - AddCount);
-                    AddCount = SafetyMonitor.ActionsFreq[Operation.Add];
+                    int tempAddCount = (ValueMonitor.ActionsFreq[Operation.Add] - AddCount);
+                    AddCount = ValueMonitor.ActionsFreq[Operation.Add];
 
-                    int tempSubCount = (SafetyMonitor.ActionsFreq[Operation.Sub] - SubCount);
-                    SubCount = SafetyMonitor.ActionsFreq[Operation.Sub];
+                    int tempSubCount = (ValueMonitor.ActionsFreq[Operation.Sub] - SubCount);
+                    SubCount = ValueMonitor.ActionsFreq[Operation.Sub];
 
-                    int tempMultCount = (SafetyMonitor.ActionsFreq[Operation.Mult] - MultCount);
-                    MultCount = SafetyMonitor.ActionsFreq[Operation.Mult];
+                    int tempMultCount = (ValueMonitor.ActionsFreq[Operation.Mult] - MultCount);
+                    MultCount = ValueMonitor.ActionsFreq[Operation.Mult];
 
-                    int tempDivCount = (SafetyMonitor.ActionsFreq[Operation.Div] - DivCount);
-                    DivCount = SafetyMonitor.ActionsFreq[Operation.Div];
+                    int tempDivCount = (ValueMonitor.ActionsFreq[Operation.Div] - DivCount);
+                    DivCount = ValueMonitor.ActionsFreq[Operation.Div];
 
-                    int tempResetCount = (SafetyMonitor.ActionsFreq[Operation.Reset] - ResetCount);
-                    ResetCount = SafetyMonitor.ActionsFreq[Operation.Reset];
+                    int tempResetCount = (ValueMonitor.ActionsFreq[Operation.Reset] - ResetCount);
+                    ResetCount = ValueMonitor.ActionsFreq[Operation.Reset];
 
                     string s = Iteration + "," + tempAddCount + "," + tempSubCount + "," + tempMultCount + "," + tempDivCount + "," + tempResetCount;
                     outputFile.WriteLine(s);
@@ -113,6 +151,14 @@ namespace Calculator
                 for (int i = 0; i < Coverage.Count; i++)
                 {
                     outputFile.WriteLine($"{(i+1)*BinSize}, {Coverage[i]}");
+                }
+            }
+
+            using (StreamWriter outputFile = new StreamWriter(ValueFrequenciesFile, true))
+            {
+                foreach (var kvp in ValueMonitor.ValuesCount)
+                {
+                    outputFile.WriteLine($"{kvp.Key}, {kvp.Value}");
                 }
             }
         }
