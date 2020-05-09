@@ -7,7 +7,7 @@ using System.IO;
 using Microsoft.PSharp;
 using Microsoft.PSharp.TestingServices.Scheduling.Strategies;
 
-namespace Calculator
+namespace Benchmarks.Overview.Calculator
 {
     class Program
     {
@@ -150,10 +150,6 @@ namespace Calculator
                     outputFile.WriteLine($"{kvp.Key}, {kvp.Value}");
                 }
             }
-        }
-
-        static void Main()
-        {
         }
     }
 }

@@ -1,10 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <Description>Benchmarks to be used for RL evaluation.</Description>
-    <AssemblyName>Benchmarks.Calculator</AssemblyName>
-    <RootNamespace>Benchmarks.Calculator</RootNamespace>
+    <AssemblyName>Benchmarks.Overview.Calculator</AssemblyName>
+    <RootNamespace>Benchmarks.Overview.Calculator</RootNamespace>
     <TargetFrameworks>net46</TargetFrameworks>
-    <RestoreSources>$(RestoreSources);../../bin/nuget</RestoreSources>
+    <!--<RestoreSources>$(RestoreSources);../../bin/nuget</RestoreSources>-->
     <OutputPath>..\bin\</OutputPath>
   </PropertyGroup>
   <ItemGroup>

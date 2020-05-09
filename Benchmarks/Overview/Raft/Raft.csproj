@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <Description>Benchmarks to be used for RL evaluation.</Description>
+    <AssemblyName>Benchmarks.Overview.Raft</AssemblyName>
+    <RootNamespace>Benchmarks.Overview.Raft</RootNamespace>
+    <TargetFrameworks>net46</TargetFrameworks>
+    <!-- <RestoreSources>$(RestoreSources);../../bin/nuget</RestoreSources> -->
+    <OutputPath>..\bin\</OutputPath>
+  </PropertyGroup>
+  <ItemGroup>
+    <!--<PackageReference Include="Microsoft.PSharp" Version="1.7.0-rl" />-->
+    <Reference Include="Microsoft.PSharp">
+      <HintPath>..\..\..\bin\net46\Microsoft.PSharp.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.PSharp.TestingServices">
+      <HintPath>..\..\..\bin\net46\Microsoft.PSharp.TestingServices.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+</Project>

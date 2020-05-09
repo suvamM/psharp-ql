@@ -1,7 +1,7 @@
 ﻿// Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
-namespace Calculator
+namespace Benchmarks.Overview.Calculator
 {
     internal enum Operation
     {

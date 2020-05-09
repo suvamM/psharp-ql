@@ -4,7 +4,7 @@
 using System.Collections.Generic;
 using Microsoft.PSharp;
 
-namespace Calculator
+namespace Benchmarks.Overview.Calculator
 {
     internal class ValueMonitor : Monitor
     {
