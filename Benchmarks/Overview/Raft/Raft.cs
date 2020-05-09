@@ -64,7 +64,6 @@ namespace Benchmarks.Overview.Raft
                         hash += (hash * 397) + this.NumberOfServers;
                         hash += this.Leader != null ? (hash * 397) + this.Leader.GetHashCode() : hash;
                         hash += (hash * 397) + this.LeaderTerm;
-
                         return hash;
                     }
                 }
@@ -558,6 +557,7 @@ namespace Benchmarks.Overview.Raft
                     var lastLogIndex = this.Logs.Count;
                     var lastLogTerm = this.GetLogTermForIndex(lastLogIndex);
 
+                    this.Monitor<StateHashingMonitor>(new OpEvent(Operation.Vote));
                     this.Send(this.Servers[idx], new VoteRequest(this.CurrentTerm, this.Id,
                         lastLogIndex, lastLogTerm));
                 }
@@ -1102,9 +1102,10 @@ namespace Benchmarks.Overview.Raft
                     this.Counter++;
                 }
 
-                if (this.Counter == 6)
+                if (this.Counter == 4)
                 {
                     this.Logger.WriteLine("\n [ElectionTimer] " + this.Target + " | timed out\n");
+                    this.Monitor<StateHashingMonitor>(new OpEvent(Operation.LeaderElectionTimeout));
                     this.Send(this.Target, new TimeoutEvent());
                     this.Counter = 0;
                 }
@@ -1175,6 +1176,7 @@ namespace Benchmarks.Overview.Raft
                 if (this.Random())
                 {
                     this.Logger.WriteLine("\n [PeriodicTimer] " + this.Target + " | timed out\n");
+                    this.Monitor<StateHashingMonitor>(new OpEvent(Operation.PeriodicTimeout));
                     this.Send(this.Target, new TimeoutEvent());
                 }
 
@@ -1228,5 +1230,69 @@ namespace Benchmarks.Overview.Raft
                 this.TermsWithLeader.Add(term);
             }
         }
+
+        internal class OpEvent : Event
+        {
+            public readonly Operation Op;
+
+            public OpEvent(Operation op)
+            {
+                this.Op = op;
+            }
+        }
+
+        internal class StateHashingMonitor : Monitor
+        {
+            //public static Dictionary<int, int> ValuesCount = new Dictionary<int, int>();
+            public static Dictionary<Operation, int> ActionsFreq = new Dictionary<Operation, int>();
+
+            //protected override int HashedState => this.Value.GetHashCode();
+
+            [Start]
+            [OnEntry(nameof(DoInit))]
+            [OnEventDoAction(typeof(OpEvent), nameof(HandleMsg))]
+            private class Init : MonitorState { }
+
+            private void DoInit()
+            {
+                if (!ActionsFreq.ContainsKey(Operation.Vote))
+                {
+                    ActionsFreq.Add(Operation.Vote, 0);
+                }
+                if (!ActionsFreq.ContainsKey(Operation.LeaderElectionTimeout))
+                {
+                    ActionsFreq.Add(Operation.LeaderElectionTimeout, 0);
+                }
+                if (!ActionsFreq.ContainsKey(Operation.PeriodicTimeout))
+                {
+                    ActionsFreq.Add(Operation.PeriodicTimeout, 0);
+                }
+            }
+
+            private void HandleMsg()
+            {
+                switch ((ReceivedEvent as OpEvent).Op)
+                {
+                    case Operation.Vote:
+                        ActionsFreq[Operation.Vote]++;
+                        break;
+
+                    case Operation.LeaderElectionTimeout:
+                        ActionsFreq[Operation.LeaderElectionTimeout]++;
+                        break;
+
+                    case Operation.PeriodicTimeout:
+                        ActionsFreq[Operation.PeriodicTimeout]++;
+                        break;
+                }
+            }
+        }
+
+        internal enum Operation
+        {
+            Vote,
+            LeaderElectionTimeout,
+            PeriodicTimeout
+        };
     }
 }

@@ -20,82 +20,75 @@ namespace Benchmarks.Overview.Raft
         // Number of unique states explored in a set of iterations.
         static readonly ArrayList Coverage = new ArrayList();
 
-        static int AddCount = 0;
-        static int SubCount = 0;
-        static int MultCount = 0;
-        static int DivCount = 0;
-        static int ResetCount = 0;
+        static int VoteCount = 0;
+        static int LeaderElectionTimeoutCount = 0;
+        static int PeriodicTimeoutCount = 0;
 
         [Test]
         public static void Execute(IMachineRuntime runtime)
         {
+            runtime.RegisterMonitor(typeof(Raft.StateHashingMonitor));
             runtime.RegisterMonitor(typeof(Raft.SafetyMonitor));
             runtime.CreateMachine(typeof(Raft.ClusterManager), "ClusterManager");
         }
 
-        //[TestInit]
-        //public static void Start()
-        //{
-        //    string strategy = Configuration.Current.SchedulingStrategy.ToString().ToLower();
-        //    ActionCoverageFile = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), $"action_coverage_{strategy}.csv");
-        //    StateCoverageFile = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), $"state_coverage_{strategy}.csv");
-        //    ValueFrequenciesFile = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), $"value_frequences_{strategy}.csv");
+        [TestInit]
+        public static void Start()
+        {
+            string strategy = Configuration.Current.SchedulingStrategy.ToString().ToLower();
+            ActionCoverageFile = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), $"action_coverage_{strategy}.csv");
+            StateCoverageFile = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), $"state_coverage_{strategy}.csv");
+            ValueFrequenciesFile = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), $"value_frequences_{strategy}.csv");
 
-        //    try
-        //    {
-        //        if (File.Exists(ActionCoverageFile))
-        //        {
-        //            File.Delete(ActionCoverageFile);
-        //        }
+            try
+            {
+                if (File.Exists(ActionCoverageFile))
+                {
+                    File.Delete(ActionCoverageFile);
+                }
 
-        //        if (File.Exists(StateCoverageFile))
-        //        {
-        //            File.Delete(StateCoverageFile);
-        //        }
+                if (File.Exists(StateCoverageFile))
+                {
+                    File.Delete(StateCoverageFile);
+                }
 
-        //        if (File.Exists(ValueFrequenciesFile))
-        //        {
-        //            File.Delete(ValueFrequenciesFile);
-        //        }
-        //    }
-        //    catch (UnauthorizedAccessException)
-        //    {
-        //        Console.Error.WriteLine($"Error: make sure {ActionCoverageFile} and {StateCoverageFile} are closed.");
-        //    }
-        //}
+                if (File.Exists(ValueFrequenciesFile))
+                {
+                    File.Delete(ValueFrequenciesFile);
+                }
+            }
+            catch (UnauthorizedAccessException)
+            {
+                Console.Error.WriteLine($"Error: make sure {ActionCoverageFile} and {StateCoverageFile} are closed.");
+            }
+        }
 
-        //[TestIterationDispose]
-        //public static void EndIter()
-        //{
-        //    Console.WriteLine($"<DebugLog> Summarizing last {BinSize} iterations in {ActionCoverageFile}.");
+        [TestIterationDispose]
+        public static void EndIter()
+        {
+            Console.WriteLine($"<DebugLog> Summarizing last {BinSize} iterations in {ActionCoverageFile}.");
 
-        //    using (StreamWriter outputFile = new StreamWriter(ActionCoverageFile, true))
-        //    {
-        //        Iteration++;
-        //        if (Iteration % BinSize == 0)
-        //        {
-        //            Coverage.Add(ValueMonitor.ValuesCount.Keys.Count);
+            using (StreamWriter outputFile = new StreamWriter(ActionCoverageFile, true))
+            {
+                Iteration++;
+                if (Iteration % BinSize == 0)
+                {
+                    //Coverage.Add(Raft.StateHashingMonitor.ValuesCount.Keys.Count);
 
-        //            int tempAddCount = (ValueMonitor.ActionsFreq[Operation.Add] - AddCount);
-        //            AddCount = ValueMonitor.ActionsFreq[Operation.Add];
+                    int tempVoteCount = (Raft.StateHashingMonitor.ActionsFreq[Raft.Operation.Vote] - VoteCount);
+                    VoteCount = Raft.StateHashingMonitor.ActionsFreq[Raft.Operation.Vote];
 
-        //            int tempSubCount = (ValueMonitor.ActionsFreq[Operation.Sub] - SubCount);
-        //            SubCount = ValueMonitor.ActionsFreq[Operation.Sub];
+                    int tempLeaderElectionTimeoutCount = (Raft.StateHashingMonitor.ActionsFreq[Raft.Operation.LeaderElectionTimeout] - LeaderElectionTimeoutCount);
+                    LeaderElectionTimeoutCount = Raft.StateHashingMonitor.ActionsFreq[Raft.Operation.LeaderElectionTimeout];
 
-        //            int tempMultCount = (ValueMonitor.ActionsFreq[Operation.Mult] - MultCount);
-        //            MultCount = ValueMonitor.ActionsFreq[Operation.Mult];
+                    int tempPeriodicTimeoutCount = (Raft.StateHashingMonitor.ActionsFreq[Raft.Operation.PeriodicTimeout] - PeriodicTimeoutCount);
+                    PeriodicTimeoutCount = Raft.StateHashingMonitor.ActionsFreq[Raft.Operation.PeriodicTimeout];
 
-        //            int tempDivCount = (ValueMonitor.ActionsFreq[Operation.Div] - DivCount);
-        //            DivCount = ValueMonitor.ActionsFreq[Operation.Div];
-
-        //            int tempResetCount = (ValueMonitor.ActionsFreq[Operation.Reset] - ResetCount);
-        //            ResetCount = ValueMonitor.ActionsFreq[Operation.Reset];
-
-        //            string s = Iteration + "," + tempAddCount + "," + tempSubCount + "," + tempMultCount + "," + tempDivCount + "," + tempResetCount;
-        //            outputFile.WriteLine(s);
-        //        }
-        //    }
-        //}
+                    string s = Iteration + "," + tempVoteCount + "," + tempLeaderElectionTimeoutCount + "," + tempPeriodicTimeoutCount;
+                    outputFile.WriteLine(s);
+                }
+            }
+        }
 
         //[TestDispose]
         //public static void End()
@@ -113,7 +106,7 @@ namespace Benchmarks.Overview.Raft
 
         //    using (StreamWriter outputFile = new StreamWriter(ValueFrequenciesFile, true))
         //    {
-        //        foreach (var kvp in ValueMonitor.ValuesCount)
+        //        foreach (var kvp in Raft.StateHashingMonitor.ValuesCount)
         //        {
         //            outputFile.WriteLine($"{kvp.Key}, {kvp.Value}");
         //        }
