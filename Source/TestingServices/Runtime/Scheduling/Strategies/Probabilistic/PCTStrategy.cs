@@ -55,10 +55,24 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
         private readonly SortedSet<int> PriorityChangePoints;
 
         /// <summary>
-        /// Map from values representing program states to their transition
-        /// frequency in the current execution path.
+        /// The set of default hashed states.
         /// </summary>
-        private readonly Dictionary<int, ulong> TransitionFrequencies;
+        private readonly HashSet<int> DefaultHashedStates;
+
+        /// <summary>
+        /// The set of inbox-only hashed states.
+        /// </summary>
+        private readonly HashSet<int> InboxOnlyHashedStates;
+
+        /// <summary>
+        /// The set of custom hashed states.
+        /// </summary>
+        private readonly HashSet<int> CustomHashedStates;
+
+        /// <summary>
+        /// The set of full hashed states.
+        /// </summary>
+        private readonly HashSet<int> FullHashedStates;
 
         /// <summary>
         /// The number of explored executions.
@@ -92,7 +106,10 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
             this.MaxPrioritySwitchPoints = maxPrioritySwitchPoints;
             this.PrioritizedOperations = new List<IAsyncOperation>();
             this.PriorityChangePoints = new SortedSet<int>();
-            this.TransitionFrequencies = new Dictionary<int, ulong>();
+            this.DefaultHashedStates = new HashSet<int>();
+            this.InboxOnlyHashedStates = new HashSet<int>();
+            this.CustomHashedStates = new HashSet<int>();
+            this.FullHashedStates = new HashSet<int>();
             this.Epochs = 0;
             this.IsBugFound = false;
         }
@@ -125,15 +142,10 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
         private int CaptureExecutionStep(IAsyncOperation current)
         {
             int state = current.DefaultHashedState;
-
-            if (!this.TransitionFrequencies.ContainsKey(state))
-            {
-                this.TransitionFrequencies.Add(state, 0);
-            }
-
-            // Increment the state transition frequency.
-            this.TransitionFrequencies[state]++;
-
+            this.DefaultHashedStates.Add(current.DefaultHashedState);
+            this.InboxOnlyHashedStates.Add(current.InboxOnlyHashedState);
+            this.CustomHashedStates.Add(current.CustomHashedState);
+            this.FullHashedStates.Add(current.FullHashedState);
             return state;
         }
 
@@ -271,7 +283,10 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
                 this.Epochs == 5120 || this.Epochs == 10000 || this.Epochs == 10240 || this.Epochs == 20480 || this.Epochs == 40960 ||
                 this.Epochs == 81920 || this.Epochs == 163840)
             {
-                Console.WriteLine($"==================> #{this.Epochs} UniqueStates (size: {this.TransitionFrequencies.Count})");
+                Console.WriteLine($"==================> #{this.Epochs} Default States (size: {this.DefaultHashedStates.Count})");
+                Console.WriteLine($"==================> #{this.Epochs} Inbox-Only States (size: {this.InboxOnlyHashedStates.Count})");
+                Console.WriteLine($"==================> #{this.Epochs} Custom States (size: {this.CustomHashedStates.Count})");
+                Console.WriteLine($"==================> #{this.Epochs} Full States (size: {this.FullHashedStates.Count})");
             }
 
             this.IsBugFound = false;

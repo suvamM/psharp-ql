@@ -11,6 +11,12 @@ namespace Benchmarks.Protocols
         }
 
         [Test]
+        public static void Test_CoffeeMachine(IMachineRuntime runtime)
+        {
+            CoffeeMachine.Execute(runtime);
+        }
+
+        [Test]
         public static void Test_Chord(IMachineRuntime runtime)
         {
             Chord.Execute(runtime);
