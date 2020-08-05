@@ -1,7 +1,7 @@
 {
   "testName": "Test_Fib_Bench_Longest_2",
   "assemblyPath" : "Benchmarks.Threading.dll",
-  "outputPath" : "..\\..\\out\\FibBenchLongest2\\default",
+  "outputPath" : "../../Bugfinding/out/FibBenchLongest2/default",
   "numEpochs" : 100,
   "numIterations" : 10000,
   "maxSteps" : 1000,

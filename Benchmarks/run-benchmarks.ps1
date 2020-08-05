@@ -4,7 +4,8 @@ param(
     [string]$configuration="Release",
     [string]$mode="bugfinding",
     [string]$benchmarks="all",
-    [int]$bx = 100
+    [int]$numEpochs = 100,
+    [int]$timeout = 0
 )
 
 Import-Module $PSScriptRoot\..\Scripts\powershell\common.psm1
@@ -17,8 +18,12 @@ if ($mode -eq "bugfinding") {
     Get-ChildItem $experiments -Filter *.test.json |
     Foreach-Object {
         Write-Comment -prefix "..." -text "Running experiment $_" -color "yellow"
-        & $dotnet $PSScriptRoot/bin/netcoreapp3.1/EvaluationDriver.dll $_
+        & $dotnet $PSScriptRoot/bin/netcoreapp3.1/EvaluationDriver.dll $experiments/$_ $numEpochs $timeout
     }
+
+    Write-Comment -prefix "." -text "Aggregating results, and dumping to csv" -color "yellow"
+    python ./Bugfinding/AggregateResults.py
+    Write-Comment -prefix "." -text "Result aggregation completed. All experiments done." -color "green"
 }
 
 elseif ($mode -eq "datanotdet") {

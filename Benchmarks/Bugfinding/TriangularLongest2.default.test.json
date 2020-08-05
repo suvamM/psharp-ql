@@ -1,7 +1,7 @@
 {
   "testName": "Test_Triangular_Longest_2",
   "assemblyPath" : "Benchmarks.Threading.dll",
-  "outputPath" : "..\\..\\out\\TriangularLongest2\\default",
+  "outputPath" : "../../Bugfinding/out/TriangularLongest2/default",
   "numEpochs" : 100,
   "numIterations" : 10000,
   "maxSteps" : 1000,

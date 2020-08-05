@@ -11,6 +11,9 @@ namespace EvaluationDriver
 {
     class Program
     {
+        private static int NumEpochs = 100;
+        private static int Timeout = 0;
+
         private static readonly Dictionary<string, string> SchedulerTypes = new Dictionary<string, string>
         {
             { "QL", "rl" },
@@ -25,14 +28,19 @@ namespace EvaluationDriver
 
         static async Task Main(string[] args)
         {
-            if (args.Length != 1 || !File.Exists(args[0]) || !args[0].EndsWith("test.json"))
+            if (args.Length != 3 || !File.Exists(args[0]) || !args[0].EndsWith("test.json"))
             {
                 Console.WriteLine("Error: expected test configuration file: <file>.test.json");
                 Environment.Exit(1);
             }
 
+            NumEpochs = Convert.ToInt32(args[1]);
+            Timeout = Convert.ToInt32(args[2]);
+
             // Parses the command line options to get the configuration.
             Configuration configuration = ParseConfiguration(args[0]);
+            configuration.NumEpochs = (NumEpochs != 100) ? NumEpochs : configuration.NumEpochs;
+            configuration.Timeout = (Timeout > 0) ? Timeout : 0;
             configuration.Print();
 
             // Run the experiments.
@@ -91,6 +99,11 @@ namespace EvaluationDriver
                     p.StartInfo.Arguments += $"-abstraction-level:{configuration.AbstractionLevel} ";
                     p.StartInfo.Arguments += $"-sch:{schedulerType} ";
 
+                    if (configuration.Timeout > 0)
+                    {
+                        p.StartInfo.Arguments += $"-timeout:{configuration.Timeout} ";
+                    }
+
                     // Start the child process.
                     p.Start();
 
@@ -134,7 +147,7 @@ namespace EvaluationDriver
             double variance = iterations.Select(val => Math.Pow(val - avgIterationsToBug, 2)).Sum();
             double iterStdDev = Math.Sqrt(variance / iterations.Count);
 
-            return new Result(schedulerName, numBuggyEpochs, bugFraction, avgIterationsToBug, iterStdDev);
+            return new Result(configuration.TestName, schedulerName, numBuggyEpochs, bugFraction, avgIterationsToBug, iterStdDev);
         }
 
         static void WriteResults(Result[] results, Configuration configuration)
@@ -165,6 +178,9 @@ namespace EvaluationDriver
         private class Result
         {
             [JsonProperty]
+            internal string TestName { get; set; }
+
+            [JsonProperty]
             internal string SchedulerName { get; set; }
 
             [JsonProperty]
@@ -179,9 +195,10 @@ namespace EvaluationDriver
             [JsonProperty]
             internal double IterStdDev { get; set; }
 
-            internal Result(string schedulerName, int numBuggyEpochs, double bugFraction,
+            internal Result(string testName, string schedulerName, int numBuggyEpochs, double bugFraction,
                 double avgIterationsToBug, double iterStdDev)
             {
+                this.TestName = testName;
                 this.SchedulerName = schedulerName;
                 this.NumBuggyEpochs = numBuggyEpochs;
                 this.BugFraction = bugFraction;
@@ -196,10 +213,11 @@ namespace EvaluationDriver
             internal readonly string TestName;
             internal readonly string AssemblyPath;
             internal readonly string OutputPath;
-            internal readonly int NumEpochs;
+            internal int NumEpochs;
             internal readonly int NumIterations;
             internal readonly int MaxSteps;
             internal readonly string AbstractionLevel;
+            internal int Timeout;
             internal readonly string[] Strategies;
 
             [JsonConstructor]
@@ -229,6 +247,11 @@ namespace EvaluationDriver
                 Console.WriteLine($"Num iterations: {this.NumIterations}");
                 Console.WriteLine($"Max steps: {this.MaxSteps}");
                 Console.WriteLine($"Abstraction level: {this.AbstractionLevel}");
+
+                if (this.Timeout > 0)
+                {
+                    Console.WriteLine($"Timeout: {this.Timeout}");
+                }
 
                 string strategies = string.Empty;
                 for (int idx = 0; idx < this.Strategies.Length; idx++)

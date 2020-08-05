@@ -1,7 +1,7 @@
 {
   "testName": "Test_SafeStack",
   "assemblyPath" : "Benchmarks.Threading.dll",
-  "outputPath" : "..\\..\\out\\SafeStack\\default",
+  "outputPath" : "../../Bugfinding/out/SafeStack/default",
   "numEpochs" : 100,
   "numIterations" : 10000,
   "maxSteps" : 1000,

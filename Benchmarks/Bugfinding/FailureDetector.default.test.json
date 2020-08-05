@@ -1,7 +1,7 @@
 {
   "testName": "Test_FailureDetector",
   "assemblyPath" : "Benchmarks.Protocols.dll",
-  "outputPath" : "..\\..\\out\\FailureDetector\\default",
+  "outputPath" : "../../Bugfinding/out/FailureDetector/default",
   "numEpochs" : 100,
   "numIterations" : 10000,
   "maxSteps" : 200,
