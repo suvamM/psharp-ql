@@ -13,7 +13,7 @@ Get-ChildItem $experiments -Filter *.test.json |
 Foreach-Object {
     # $content = Get-Content $_.FullName
     Write-Comment -prefix "..." -text "Running experiment $_" -color "yellow"
-    & $PSScriptRoot\bin\net46\EvaluationDriver.exe $experiments\$_
+    & $dotnet $PSScriptRoot\bin\netcoreapp3.1\EvaluationDriver.dll $experiments\$_
 }
 
 Write-Comment -prefix "." -text "Successfully run the P# reinforcement-learning benchmarks" -color "green"
