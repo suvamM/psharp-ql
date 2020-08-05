@@ -81,8 +81,9 @@ namespace EvaluationDriver
                 {
                     p.StartInfo.UseShellExecute = false;
                     p.StartInfo.RedirectStandardOutput = true;
-                    p.StartInfo.FileName = configuration.TesterPath;
-                    p.StartInfo.Arguments = $" -test:{configuration.AssemblyPath} ";
+                    p.StartInfo.FileName = "dotnet";
+                    p.StartInfo.Arguments = $" {configuration.TesterPath} ";
+                    p.StartInfo.Arguments += $"-test:{configuration.AssemblyPath} ";
                     p.StartInfo.Arguments += $"-method:{configuration.TestName} ";
                     p.StartInfo.Arguments += $"-o:{Path.Combine(configuration.OutputPath, schedulerName)} ";
                     p.StartInfo.Arguments += $"-i:{configuration.NumIterations} ";
@@ -206,7 +207,7 @@ namespace EvaluationDriver
                 int numIterations, int maxSteps, string abstractionLevel, string[] strategies)
             {
                 this.TesterPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location),
-                    "..\\..\\..\\bin\\net46\\PSharpTester.exe");
+                    "../../../bin/netcoreapp3.1/PSharpTester.dll");
                 this.TestName = testName;
                 this.AssemblyPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), assemblyPath);
                 this.OutputPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), outputPath);
