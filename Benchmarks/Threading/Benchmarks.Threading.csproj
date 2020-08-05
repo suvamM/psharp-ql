@@ -3,7 +3,7 @@
     <Description>Benchmarks to be used for RL evaluation.</Description>
     <AssemblyName>Benchmarks.Threading</AssemblyName>
     <RootNamespace>Benchmarks.Threading</RootNamespace>
-    <TargetFrameworks>net46</TargetFrameworks>
+    <TargetFrameworks>netcoreapp3.1</TargetFrameworks>
     <RestoreSources>$(RestoreSources);../../bin/nuget</RestoreSources>
     <OutputPath>..\bin\</OutputPath>
   </PropertyGroup>

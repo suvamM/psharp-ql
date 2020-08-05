@@ -3,7 +3,7 @@
     <Description>Evaluation driver to be used for RL evaluation.</Description>
     <AssemblyName>EvaluationDriver</AssemblyName>
     <RootNamespace>EvaluationDriver</RootNamespace>
-    <TargetFrameworks>net46</TargetFrameworks>
+    <TargetFrameworks>netcoreapp3.1</TargetFrameworks>
     <OutputType>Exe</OutputType>
     <OutputPath>..\bin\</OutputPath>
   </PropertyGroup>

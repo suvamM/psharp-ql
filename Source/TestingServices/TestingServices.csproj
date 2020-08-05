@@ -8,13 +8,8 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <PackageTags>psharp;state-machines;testing</PackageTags>
     <CodeAnalysisRuleSet>.\Properties\codeanalysis.ruleset</CodeAnalysisRuleSet>
+    <TargetFrameworks>netcoreapp3.1</TargetFrameworks>
     <OutputPath>..\..\bin\</OutputPath>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(OS)'=='Windows_NT'">
-    <TargetFrameworks>netstandard2.0;net46</TargetFrameworks>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(OS)'=='UNIX'">
-    <TargetFrameworks>netstandard2.0</TargetFrameworks>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\Core\Core.csproj" />
