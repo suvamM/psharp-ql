@@ -10,7 +10,7 @@
   <ItemGroup>
     <!--<PackageReference Include="Microsoft.PSharp" Version="1.7.0-rl" />-->
     <Reference Include="Microsoft.PSharp">
-      <HintPath>..\..\bin\net46\Microsoft.PSharp.dll</HintPath>
+      <HintPath>..\..\bin\netcoreapp3.1\Microsoft.PSharp.dll</HintPath>
     </Reference>
   </ItemGroup>
 </Project>
