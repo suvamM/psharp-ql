@@ -22,7 +22,7 @@ if ($mode -eq "test") {
     }
 
     Write-Comment -prefix "." -text "Aggregating results, and dumping to csv" -color "yellow"
-    python ./Test/AggregateResults.py
+    python3 ./Test/AggregateResults.py
     Write-Comment -prefix "." -text "Result aggregation completed. All experiments done." -color "green"
 }
 
@@ -36,7 +36,7 @@ if ($mode -eq "bugfinding") {
     }
 
     Write-Comment -prefix "." -text "Aggregating results, and dumping to csv" -color "yellow"
-    python ./Bugfinding/AggregateResults.py
+    python3 ./Bugfinding/AggregateResults.py
     Write-Comment -prefix "." -text "Result aggregation completed. All experiments done." -color "green"
 }
 
