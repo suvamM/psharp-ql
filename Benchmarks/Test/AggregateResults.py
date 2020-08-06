@@ -25,7 +25,7 @@ def aggregateResults () :
                 results.append(bugResult)
     
     time = strftime("%Y-%m-%d-%H-%M-%S", gmtime())
-    with open("bugfinding" + time + ".csv", "a", newline='') as my_csv:
+    with open("test" + time + ".csv", "a", newline='') as my_csv:
         csvWriter = csv.writer(my_csv, delimiter=',')
         csvWriter.writerows(results)
 

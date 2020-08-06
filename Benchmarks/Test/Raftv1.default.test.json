@@ -1,7 +1,7 @@
 {
   "testName": "Test_Raftv1",
   "assemblyPath" : "Benchmarks.Protocols.dll",
-  "outputPath" : "../../Bugfinding/out/Raftv1/default",
+  "outputPath" : "../../Test/out/Raftv1/default",
   "numEpochs" : 100,
   "numIterations" : 10000,
   "maxSteps" : 1000,
