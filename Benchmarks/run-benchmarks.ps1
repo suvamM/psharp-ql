@@ -12,13 +12,27 @@ Import-Module $PSScriptRoot\..\Scripts\powershell\common.psm1
 
 Write-Comment -prefix "." -text "Running the P# reinforcement-learning benchmarks" -color "yellow"
 
+if ($mode -eq "test") {
+    Write-Comment -prefix ".." -text "Running in mode $mode" -color "yellow"
+    $experiments = "$PSScriptRoot/Test"
+    Get-ChildItem $experiments -Filter *.test.json |
+    Foreach-Object {
+        Write-Comment -prefix "..." -text "Running experiment $_" -color "yellow"
+        & $dotnet $PSScriptRoot/bin/netcoreapp3.1/EvaluationDriver.dll $_ $numEpochs $timeout
+    }
+
+    Write-Comment -prefix "." -text "Aggregating results, and dumping to csv" -color "yellow"
+    python ./Test/AggregateResults.py
+    Write-Comment -prefix "." -text "Result aggregation completed. All experiments done." -color "green"
+}
+
 if ($mode -eq "bugfinding") {
     Write-Comment -prefix ".." -text "Running in mode $mode" -color "yellow"
     $experiments = "$PSScriptRoot/Bugfinding"
     Get-ChildItem $experiments -Filter *.test.json |
     Foreach-Object {
         Write-Comment -prefix "..." -text "Running experiment $_" -color "yellow"
-        & $dotnet $PSScriptRoot/bin/netcoreapp3.1/EvaluationDriver.dll $experiments/$_ $numEpochs $timeout
+        & $dotnet $PSScriptRoot/bin/netcoreapp3.1/EvaluationDriver.dll $_ $numEpochs $timeout
     }
 
     Write-Comment -prefix "." -text "Aggregating results, and dumping to csv" -color "yellow"
