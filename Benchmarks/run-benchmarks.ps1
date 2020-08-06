@@ -26,7 +26,7 @@ if ($mode -eq "test") {
     Write-Comment -prefix "." -text "Result aggregation completed. All experiments done." -color "green"
 }
 
-if ($mode -eq "bugfinding") {
+elseif ($mode -eq "bugfinding") {
     Write-Comment -prefix ".." -text "Running in mode $mode" -color "yellow"
     $experiments = "$PSScriptRoot/Bugfinding"
     Get-ChildItem $experiments -Filter *.test.json |
