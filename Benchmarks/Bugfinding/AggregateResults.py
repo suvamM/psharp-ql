@@ -11,7 +11,7 @@ def aggregateResults () :
     results.append(['Benchmark', 'QL', 'QL-NDN', 'Random', 'Greedy', 'PCT-3', 'PCT-10', 'PCT-30', 'IDB'])
 
     # Get a list of all the created directories
-    directories = [x[0] for x in os.walk("./out")]
+    directories = [x[0] for x in os.walk("./Bugfinding/out")]
 
     for i in range(len(directories)) :
         if str(directories[i]).endswith("default"):
