@@ -55,11 +55,11 @@ elseif ($mode -eq "DataNondet") {
 
 elseif ($mode -eq "StateHash") {
     Write-Comment -prefix ".." -text "Running in mode $mode" -color "yellow"
-    $experiments = "$PSScriptRoot/DataNondet"
+    $experiments = "$PSScriptRoot/StateHash"
     Get-ChildItem $experiments -Filter *.test.json |
     Foreach-Object {
         Write-Comment -prefix "..." -text "Running experiment $_" -color "yellow"
-        & $dotnet $PSScriptRoot/bin/netcoreapp3.1/EvaluationDriver.dll $_ $numEpochs $timeout
+        & $dotnet $PSScriptRoot/bin/netcoreapp3.1/EvaluationDriver.dll $experiments/$_ $numEpochs $timeout
     }
 }
 
