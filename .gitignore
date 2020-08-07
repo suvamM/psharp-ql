@@ -182,9 +182,10 @@ UpgradeLog*.htm
 # Microsoft Fakes
 FakesAssemblies/
 
-#Benchmarks
+#Outputs
 Benchmarks/out
 Benchmarks/Test/out
 Benchmarks/Bugfinding/out
 Benchmarks/DataNondet/out
 Benchmarks/StateHash/out
+*.csv
