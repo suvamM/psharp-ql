@@ -45,7 +45,7 @@ elseif ($mode -eq "DataNondet") {
     Get-ChildItem $experiments -Filter *.test.json |
     Foreach-Object {
         Write-Comment -prefix "..." -text "Running experiment $_" -color "yellow"
-        & $dotnet $PSScriptRoot/bin/netcoreapp3.1/EvaluationDriver.dll $_ $experiments/$numEpochs $timeout
+        & $dotnet $PSScriptRoot/bin/netcoreapp3.1/EvaluationDriver.dll $experiments/$_ $numEpochs $timeout
     }
 
     Write-Comment -prefix "." -text "Aggregating results, and dumping to csv" -color "yellow"
