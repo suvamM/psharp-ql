@@ -17,7 +17,7 @@ if ($mode -eq "Test") {
     Get-ChildItem $experiments -Filter *.test.json |
     Foreach-Object {
         Write-Comment -prefix "..." -text "Running experiment $_" -color "yellow"
-        & $dotnet $PSScriptRoot/bin/netcoreapp3.1/EvaluationDriver.dll $_ $numEpochs $timeout
+        & $dotnet $PSScriptRoot/bin/netcoreapp3.1/EvaluationDriver.dll $experiments/$_ $numEpochs $timeout
     }
 
     Write-Comment -prefix "." -text "Aggregating results, and dumping to csv" -color "yellow"
@@ -53,8 +53,14 @@ elseif ($mode -eq "DataNondet") {
     Write-Comment -prefix "." -text "Result aggregation completed. All experiments done." -color "green"
 }
 
-elseif ($mode -eq "statehash") {
+elseif ($mode -eq "StateHash") {
     Write-Comment -prefix ".." -text "Running in mode $mode" -color "yellow"
+    $experiments = "$PSScriptRoot/DataNondet"
+    Get-ChildItem $experiments -Filter *.test.json |
+    Foreach-Object {
+        Write-Comment -prefix "..." -text "Running experiment $_" -color "yellow"
+        & $dotnet $PSScriptRoot/bin/netcoreapp3.1/EvaluationDriver.dll $_ $numEpochs $timeout
+    }
 }
 
 elseif ($mode -eq "perf") {
