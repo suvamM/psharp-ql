@@ -8,10 +8,10 @@ from time import gmtime, strftime
 
 def aggregateResults () :
     results = []
-    results.append(['Benchmark', 'QL', 'Random', 'Greedy', 'PCT-3', 'PCT-10', 'PCT-30', 'IDB'])
+    results.append(['Benchmark', 'QL', 'QL-NDN'])
 
     # Get a list of all the created directories
-    directories = [x[0] for x in os.walk("./Bugfinding/out")]
+    directories = [x[0] for x in os.walk("./DataNondet/out")]
 
     for i in range(len(directories)) :
         if str(directories[i]).endswith("default"):
@@ -25,7 +25,7 @@ def aggregateResults () :
                 results.append(bugResult)
     
     time = strftime("%Y-%m-%d-%H-%M-%S", gmtime())
-    with open("bugfinding" + time + ".csv", "a", newline='') as my_csv:
+    with open("datanondet" + time + ".csv", "a", newline='') as my_csv:
         csvWriter = csv.writer(my_csv, delimiter=',')
         csvWriter.writerows(results)
 

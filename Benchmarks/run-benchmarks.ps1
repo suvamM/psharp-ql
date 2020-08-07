@@ -2,8 +2,7 @@ param(
     [string]$dotnet="dotnet",
     [ValidateSet("Debug","Release")]
     [string]$configuration="Release",
-    [string]$mode="bugfinding",
-    [string]$benchmarks="all",
+    [string]$mode="Bugfinding",
     [int]$numEpochs = 100,
     [int]$timeout = 0
 )
@@ -12,7 +11,7 @@ Import-Module $PSScriptRoot\..\Scripts\powershell\common.psm1
 
 Write-Comment -prefix "." -text "Running the P# reinforcement-learning benchmarks" -color "yellow"
 
-if ($mode -eq "test") {
+if ($mode -eq "Test") {
     Write-Comment -prefix ".." -text "Running in mode $mode" -color "yellow"
     $experiments = "$PSScriptRoot/Test"
     Get-ChildItem $experiments -Filter *.test.json |
@@ -26,7 +25,7 @@ if ($mode -eq "test") {
     Write-Comment -prefix "." -text "Result aggregation completed. All experiments done." -color "green"
 }
 
-elseif ($mode -eq "bugfinding") {
+elseif ($mode -eq "Bugfinding") {
     Write-Comment -prefix ".." -text "Running in mode $mode" -color "yellow"
     $experiments = "$PSScriptRoot/Bugfinding"
     Get-ChildItem $experiments -Filter *.test.json |
@@ -40,8 +39,18 @@ elseif ($mode -eq "bugfinding") {
     Write-Comment -prefix "." -text "Result aggregation completed. All experiments done." -color "green"
 }
 
-elseif ($mode -eq "datanotdet") {
+elseif ($mode -eq "DataNondet") {
     Write-Comment -prefix ".." -text "Running in mode $mode" -color "yellow"
+    $experiments = "$PSScriptRoot/DataNondet"
+    Get-ChildItem $experiments -Filter *.test.json |
+    Foreach-Object {
+        Write-Comment -prefix "..." -text "Running experiment $_" -color "yellow"
+        & $dotnet $PSScriptRoot/bin/netcoreapp3.1/EvaluationDriver.dll $_ $numEpochs $timeout
+    }
+
+    Write-Comment -prefix "." -text "Aggregating results, and dumping to csv" -color "yellow"
+    python3 ./DataNondet/AggregateResults.py
+    Write-Comment -prefix "." -text "Result aggregation completed. All experiments done." -color "green"
 }
 
 elseif ($mode -eq "statehash") {
