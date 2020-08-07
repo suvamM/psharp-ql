@@ -1,0 +1,12 @@
+{
+  "testName": "Test_SafeStack",
+  "assemblyPath" : "Benchmarks.Threading.dll",
+  "outputPath" : "..\\..\\out\\SafeStack\\custom",
+  "numIterations" : 1000000,
+  "maxSteps" : 1000,
+  "abstractionLevel" : "custom",
+  "timeout" : 0,
+  "strategies" : [
+    "QL"
+  ]
+}

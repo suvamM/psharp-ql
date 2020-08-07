@@ -1,0 +1,12 @@
+{
+  "testName": "Test_Chord",
+  "assemblyPath" : "Benchmarks.Protocols.dll",
+  "outputPath" : "..\\..\\out\\Chord\\default",
+  "numIterations" : 1000000,
+  "maxSteps" : 1000,
+  "abstractionLevel" : "default",
+  "timeout" : 0,
+  "strategies" : [
+    "QL", "QL-NDN", "Random", "Greedy", "PCT-3", "PCT-10", "PCT-30", "IDB"
+  ]
+}

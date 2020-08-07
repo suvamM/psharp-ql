@@ -1,0 +1,12 @@
+{
+  "testName": "Test_FailureDetector",
+  "assemblyPath" : "Benchmarks.Protocols.dll",
+  "outputPath" : "..\\..\\out\\FailureDetector\\inboxonly",
+  "numIterations" : 1000000,
+  "maxSteps" : 200,
+  "abstractionLevel" : "inbox-only",
+  "timeout" : 0,
+  "strategies" : [
+    "QL"
+  ]
+}
