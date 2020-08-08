@@ -23,8 +23,8 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
         /// Initializes a new instance of the <see cref="ProbabilisticRandomStrategy"/> class.
         /// It uses the specified random number generator.
         /// </summary>
-        public ProbabilisticRandomStrategy(int maxSteps, int numberOfCoinFlips, IRandomNumberGenerator random)
-            : base(maxSteps, random)
+        public ProbabilisticRandomStrategy(int maxSteps, int numberOfCoinFlips, string stateInfoCSV, IRandomNumberGenerator random)
+            : base(maxSteps, stateInfoCSV, random)
         {
             this.NumberOfCoinFlips = numberOfCoinFlips;
         }

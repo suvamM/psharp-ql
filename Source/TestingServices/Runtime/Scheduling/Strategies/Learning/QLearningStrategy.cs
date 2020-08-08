@@ -5,7 +5,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Text;
 using Microsoft.PSharp.Utilities;
 
 namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
@@ -119,8 +121,8 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
         /// Initializes a new instance of the <see cref="QLearningStrategy"/> class.
         /// It uses the specified random number generator.
         /// </summary>
-        public QLearningStrategy(AbstractionLevel abstractionLevel, int maxSteps, IRandomNumberGenerator random)
-            : base(maxSteps, random)
+        public QLearningStrategy(AbstractionLevel abstractionLevel, string stateInfoCSV, int maxSteps, IRandomNumberGenerator random)
+            : base(maxSteps, stateInfoCSV, random)
         {
             this.AbstractionLevel = abstractionLevel;
             this.OperationQTable = new Dictionary<int, Dictionary<ulong, double>>();
@@ -141,6 +143,14 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
             this.FailureInjectionReward = -1000;
             this.BasicActionReward = -1;
             this.Epochs = 0;
+
+            if (this.StateInfoCSV.Length > 0)
+            {
+                var csv = new StringBuilder();
+                var header = string.Format("Step,QL_States");
+                csv.AppendLine(header);
+                File.WriteAllText(this.StateInfoCSV, csv.ToString());
+            }
         }
 
         /// <summary>
@@ -469,7 +479,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
                 if (node.Next.Next is null && this.IsBugFound)
                 {
                     reward = this.BugStateReward;
-                    Console.WriteLine($"==================> ({state}) Reward of {nextOp} ({nextState}) is {reward} [bug]");
+                    //Console.WriteLine($"==================> ({state}) Reward of {nextOp} ({nextState}) is {reward} [bug]");
                 }
                 else
                 {
@@ -497,17 +507,16 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
                 idx++;
             }
 
-            if (this.IsBugFound || this.Epochs == 10 || this.Epochs == 20 || this.Epochs == 40 || this.Epochs == 80 ||
-                this.Epochs == 160 || this.Epochs == 320 || this.Epochs == 640 || this.Epochs == 1280 || this.Epochs == 2560 ||
-                this.Epochs == 5120 || this.Epochs == 10240 || this.Epochs == 20480 || this.Epochs == 40960 ||
-                this.Epochs == 81920 || this.Epochs == 163840)
+            if (this.Epochs == 320 || this.Epochs == 640 || this.Epochs == 1280 || this.Epochs == 2560 ||
+                this.Epochs == 5120 || this.Epochs == 10240)
             {
-                Console.WriteLine($"==================> #{this.Epochs} ExecutionPath (size: {this.ExecutionPath.Count})");
-                Console.WriteLine($"==================> #{this.Epochs} UniqueStates (size: {this.UniqueStates.Count})");
-                Console.WriteLine($"==================> #{this.Epochs} Default States (size: {this.DefaultHashedStates.Count})");
-                Console.WriteLine($"==================> #{this.Epochs} Inbox-Only States (size: {this.InboxOnlyHashedStates.Count})");
-                Console.WriteLine($"==================> #{this.Epochs} Custom States (size: {this.CustomHashedStates.Count})");
-                Console.WriteLine($"==================> #{this.Epochs} Full States (size: {this.FullHashedStates.Count})");
+                if (this.StateInfoCSV.Length > 0)
+                {
+                    var csv = new StringBuilder();
+                    var header = string.Format($"{this.Epochs},{this.DefaultHashedStates.Count}");
+                    csv.AppendLine(header);
+                    File.AppendAllText(this.StateInfoCSV, csv.ToString());
+                }
             }
         }
 

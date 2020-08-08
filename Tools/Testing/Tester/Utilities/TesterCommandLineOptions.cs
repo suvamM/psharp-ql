@@ -172,7 +172,7 @@ namespace Microsoft.PSharp.Utilities
                         "experimental strategies also exist, but are not listed here).");
                 }
             }
-            else if (IsMatch(option, @"^[\/|-]abstraction-level:") && option.Length > 20)
+            else if (IsMatch(option, @"^[\/|-]abstraction-level:") && option.Length > 19)
             {
                 string absLevel = option.Substring(19);
                 if (IsMatch(absLevel, @"^default$"))
@@ -196,6 +196,10 @@ namespace Microsoft.PSharp.Utilities
                     Error.ReportAndExit("Please give a valid abstraction level " +
                         "'-abstraction-level:[x]', where [x] is 'default', 'inbox-only', 'custom' or 'full'.");
                 }
+            }
+            else if (IsMatch(option, @"^[\/|-]stateInfoCSV:") && option.Length > 14)
+            {
+                this.Configuration.StateInfoCSV = option.Substring(14);
             }
             else if (IsMatch(option, @"^[\/|-]replay:") && option.Length > 8)
             {

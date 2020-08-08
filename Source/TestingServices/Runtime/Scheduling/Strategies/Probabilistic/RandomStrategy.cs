@@ -5,7 +5,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Text;
 
 namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
 {
@@ -70,10 +72,15 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
         public static readonly int BucketSize = 20;
 
         /// <summary>
+        /// CSV file to dump state exploration info.
+        /// </summary>
+        protected readonly string StateInfoCSV;
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="RandomStrategy"/> class.
         /// It uses the specified random number generator.
         /// </summary>
-        public RandomStrategy(int maxSteps, IRandomNumberGenerator random)
+        public RandomStrategy(int maxSteps, string stateInfoCSV, IRandomNumberGenerator random)
         {
             this.RandomNumberGenerator = random;
             this.DefaultHashedStates = new HashSet<int>();
@@ -84,6 +91,19 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
             this.ScheduledSteps = 0;
             this.IsBugFound = false;
             this.Epochs = 0;
+            this.StateInfoCSV = stateInfoCSV;
+
+            if (this.GetType() != typeof(QLearningStrategy) &&
+                this.GetType() != typeof(GreedyRandomStrategy))
+            {
+                if (this.StateInfoCSV.Length > 0)
+                {
+                    var csv = new StringBuilder();
+                    var header = string.Format("Step,Random_States");
+                    csv.AppendLine(header);
+                    File.WriteAllText(this.StateInfoCSV, csv.ToString());
+                }
+            }
         }
 
         /// <summary>
@@ -161,15 +181,16 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
                 this.GetType() != typeof(GreedyRandomStrategy))
             {
 #pragma warning disable SA1005
-                if (this.IsBugFound || this.Epochs == 10 || this.Epochs == 20 || this.Epochs == 40 || this.Epochs == 80 ||
-                    this.Epochs == 160 || this.Epochs == 320 || this.Epochs == 640 || this.Epochs == 1280 || this.Epochs == 2560 ||
-                    this.Epochs == 5120 || this.Epochs == 10240 || this.Epochs == 20480 || this.Epochs == 40960 ||
-                    this.Epochs == 81920 || this.Epochs == 163840)
+                if (this.Epochs == 320 || this.Epochs == 640 || this.Epochs == 1280 || this.Epochs == 2560 ||
+                    this.Epochs == 5120 || this.Epochs == 10240)
                 {
-                    Console.WriteLine($"==================> #{this.Epochs} Default States (size: {this.DefaultHashedStates.Count})");
-                    Console.WriteLine($"==================> #{this.Epochs} Inbox-Only States (size: {this.InboxOnlyHashedStates.Count})");
-                    Console.WriteLine($"==================> #{this.Epochs} Custom States (size: {this.CustomHashedStates.Count})");
-                    Console.WriteLine($"==================> #{this.Epochs} Full States (size: {this.FullHashedStates.Count})");
+                    if (this.StateInfoCSV.Length > 0)
+                    {
+                        var csv = new StringBuilder();
+                        var header = string.Format($"{this.Epochs},{this.DefaultHashedStates.Count}");
+                        csv.AppendLine(header);
+                        File.AppendAllText(this.StateInfoCSV, csv.ToString());
+                    }
                 }
 
                 this.Epochs++;

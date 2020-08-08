@@ -5,7 +5,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Text;
 
 namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
 {
@@ -64,11 +66,16 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
         protected bool IsBugFound;
 
         /// <summary>
+        /// Save information about state exploration.
+        /// </summary>
+        private readonly string StateInfoCSV;
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="DelayBoundingStrategy"/> class.
         /// It uses the default random number generator (seed is based on current time).
         /// </summary>
-        public DelayBoundingStrategy(int maxSteps, int maxDelays)
-            : this(maxSteps, maxDelays, new DefaultRandomNumberGenerator(DateTime.Now.Millisecond))
+        public DelayBoundingStrategy(int maxSteps, int maxDelays, string stateInfoCSV)
+            : this(maxSteps, maxDelays, stateInfoCSV, new DefaultRandomNumberGenerator(DateTime.Now.Millisecond))
         {
         }
 
@@ -76,7 +83,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
         /// Initializes a new instance of the <see cref="DelayBoundingStrategy"/> class.
         /// It uses the specified random number generator.
         /// </summary>
-        public DelayBoundingStrategy(int maxSteps, int maxDelays, IRandomNumberGenerator random)
+        public DelayBoundingStrategy(int maxSteps, int maxDelays, string stateInfoCSV, IRandomNumberGenerator random)
         {
             this.RandomNumberGenerator = random;
             this.MaxScheduledSteps = maxSteps;
@@ -90,6 +97,15 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
             this.SamplesToThreshold = 0;
             this.IsBugFound = false;
             this.Epochs = 0;
+            this.StateInfoCSV = stateInfoCSV;
+
+            if (this.StateInfoCSV.Length > 0)
+            {
+                var csv = new StringBuilder();
+                var header = string.Format($"Step,IDB_States");
+                csv.AppendLine(header);
+                File.WriteAllText(this.StateInfoCSV, csv.ToString());
+            }
         }
 
         /// <summary>
@@ -226,6 +242,18 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
             foreach (int point in this.Shuffle(range).Take(this.MaxDelays))
             {
                 this.DelaysPoints.Add(point);
+            }
+
+            if (this.Epochs == 320 || this.Epochs == 640 || this.Epochs == 1280 || this.Epochs == 2560 ||
+                this.Epochs == 5120 || this.Epochs == 10240)
+            {
+                if (this.StateInfoCSV.Length > 0)
+                {
+                    var csv = new StringBuilder();
+                    var header = string.Format($"{this.Epochs},{this.TransitionFrequencies.Count}");
+                    csv.AppendLine(header);
+                    File.AppendAllText(this.StateInfoCSV, csv.ToString());
+                }
             }
 
             return true;
