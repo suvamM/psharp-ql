@@ -63,8 +63,18 @@ elseif ($mode -eq "StateHash") {
     }
 }
 
-elseif ($mode -eq "perf") {
+elseif ($mode -eq "Perf") {
     Write-Comment -prefix ".." -text "Running in mode $mode" -color "yellow"
+    $experiments = "$PSScriptRoot/Perf"
+    Get-ChildItem $experiments -Filter *.test.json |
+    Foreach-Object {
+        Write-Comment -prefix "..." -text "Running experiment $_" -color "yellow"
+        & $dotnet $PSScriptRoot/bin/netcoreapp3.1/EvaluationDriver.dll $experiments/$_ $numEpochs $timeout
+    }
+
+    Write-Comment -prefix "." -text "Aggregating results, and dumping to csv" -color "yellow"
+    python3 ./Perf/AggregateResults.py
+    Write-Comment -prefix "." -text "Result aggregation completed. All experiments done." -color "green"
 }
 
 elseif ($mode -eq "state-coverage") {

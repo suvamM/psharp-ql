@@ -1,6 +1,6 @@
 ﻿using Microsoft.PSharp;
 
-namespace Benchmarks.Protocols
+namespace Benchmarks.Protocols_BugsDisabled
 {
     public class Driver
     {

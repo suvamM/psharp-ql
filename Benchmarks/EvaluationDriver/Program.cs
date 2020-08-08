@@ -79,6 +79,9 @@ namespace EvaluationDriver
 
             var iterations = new List<int>();
 
+            var explorationTimes = new List<double>();
+            Stopwatch timer = new Stopwatch();
+
             for (int i = 0; i < configuration.NumEpochs; i++)
             {
                 Console.WriteLine($"----- {schedulerName} epoch {i} (Bugs/AvgIterationsToBug: " +
@@ -104,6 +107,7 @@ namespace EvaluationDriver
                         p.StartInfo.Arguments += $"-timeout:{configuration.Timeout} ";
                     }
 
+                    timer.Start();
                     // Start the child process.
                     p.Start();
 
@@ -112,14 +116,19 @@ namespace EvaluationDriver
                     // Read the output stream first and then wait.
                     output = p.StandardOutput.ReadToEnd();
                     p.WaitForExit();
+                    timer.Stop();
                 }
 
                 if (output.Contains("Found 0 bugs"))
                 {
+                    explorationTimes.Add((double)timer.ElapsedMilliseconds / (double)1000);
+                    timer.Reset();
                     continue;
                 }
                 else
                 {
+                    explorationTimes.Add((double)timer.ElapsedMilliseconds / (double)1000);
+                    timer.Reset();
                     numBuggyEpochs++;
                     string[] lines = output.Split('\n');
                     for (int j = 0; j < lines.Length; j++)
@@ -147,7 +156,13 @@ namespace EvaluationDriver
             double variance = iterations.Select(val => Math.Pow(val - avgIterationsToBug, 2)).Sum();
             double iterStdDev = Math.Sqrt(variance / iterations.Count);
 
-            return new Result(configuration.TestName, schedulerName, numBuggyEpochs, bugFraction, avgIterationsToBug, iterStdDev);
+            double avgExplorationTimeSeconds = 0.0;
+            if (explorationTimes.Count > 0)
+            {
+                avgExplorationTimeSeconds = explorationTimes.Average();
+            }
+
+            return new Result(configuration.TestName, schedulerName, numBuggyEpochs, bugFraction, avgIterationsToBug, iterStdDev, avgExplorationTimeSeconds);
         }
 
         static void WriteResults(Result[] results, Configuration configuration)
@@ -195,8 +210,11 @@ namespace EvaluationDriver
             [JsonProperty]
             internal double IterStdDev { get; set; }
 
+            [JsonProperty]
+            internal double AvgExplorationTimeSeconds {get; set; }
+
             internal Result(string testName, string schedulerName, int numBuggyEpochs, double bugFraction,
-                double avgIterationsToBug, double iterStdDev)
+                double avgIterationsToBug, double iterStdDev, double avgExplorationTimeSeconds)
             {
                 this.TestName = testName;
                 this.SchedulerName = schedulerName;
@@ -204,6 +222,7 @@ namespace EvaluationDriver
                 this.BugFraction = bugFraction;
                 this.AvgIterationsToBug = avgIterationsToBug;
                 this.IterStdDev = iterStdDev;
+                this.AvgExplorationTimeSeconds = avgExplorationTimeSeconds;
             }
         }
 
