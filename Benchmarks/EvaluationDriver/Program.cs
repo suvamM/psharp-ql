@@ -13,6 +13,7 @@ namespace EvaluationDriver
     {
         private static int NumEpochs = 100;
         private static int Timeout = 0;
+        private static string StateInfoCSV = string.Empty;
 
         private static readonly Dictionary<string, string> SchedulerTypes = new Dictionary<string, string>
         {
@@ -28,7 +29,7 @@ namespace EvaluationDriver
 
         static async Task Main(string[] args)
         {
-            if (args.Length != 3 || !File.Exists(args[0]) || !args[0].EndsWith("test.json"))
+            if (args.Length != 4 || !File.Exists(args[0]) || !args[0].EndsWith("test.json"))
             {
                 Console.WriteLine("Error: expected test configuration file: <file>.test.json");
                 Environment.Exit(1);
@@ -36,6 +37,7 @@ namespace EvaluationDriver
 
             NumEpochs = Convert.ToInt32(args[1]);
             Timeout = Convert.ToInt32(args[2]);
+            StateInfoCSV = args[3].Trim();
 
             // Parses the command line options to get the configuration.
             Configuration configuration = ParseConfiguration(args[0]);
@@ -105,6 +107,11 @@ namespace EvaluationDriver
                     if (configuration.Timeout > 0)
                     {
                         p.StartInfo.Arguments += $"-timeout:{configuration.Timeout} ";
+                    }
+
+                    if (StateInfoCSV.Length > 0)
+                    {
+                        p.StartInfo.Arguments += $"-stateInfoCSV:{StateInfoCSV} ";
                     }
 
                     timer.Start();

@@ -1,4 +1,5 @@
 ﻿using Microsoft.PSharp;
+using Microsoft.PSharp.Threading;
 
 namespace Benchmarks.Protocols_BugsDisabled
 {
@@ -32,6 +33,12 @@ namespace Benchmarks.Protocols_BugsDisabled
         public static void Test_Paxos(IMachineRuntime runtime)
         {
             Paxos.Execute(runtime);
+        }
+
+        [Test]
+        public static async MachineTask Test_SafeStack(IMachineRuntime runtime)
+        {
+            await new SafeStack().Run(runtime);
         }
     }
 }

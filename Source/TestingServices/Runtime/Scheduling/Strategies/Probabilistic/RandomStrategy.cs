@@ -74,7 +74,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
         /// <summary>
         /// CSV file to dump state exploration info.
         /// </summary>
-        protected readonly string StateInfoCSV;
+        protected string StateInfoCSV;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="RandomStrategy"/> class.
@@ -98,6 +98,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
             {
                 if (this.StateInfoCSV.Length > 0)
                 {
+                    this.StateInfoCSV += "/Random.csv";
                     var csv = new StringBuilder();
                     var header = string.Format("Step,Random_States");
                     csv.AppendLine(header);

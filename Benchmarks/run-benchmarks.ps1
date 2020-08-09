@@ -4,7 +4,8 @@ param(
     [string]$configuration="Release",
     [string]$mode="Bugfinding",
     [int]$numEpochs = 100,
-    [int]$timeout = 0
+    [int]$timeout = 0,
+    [string]$defaultCSVPath = ""
 )
 
 Import-Module $PSScriptRoot\..\Scripts\powershell\common.psm1
@@ -17,7 +18,7 @@ if ($mode -eq "Test") {
     Get-ChildItem $experiments -Filter *.test.json |
     Foreach-Object {
         Write-Comment -prefix "..." -text "Running experiment $_" -color "yellow"
-        & $dotnet $PSScriptRoot/bin/netcoreapp3.1/EvaluationDriver.dll $experiments/$_ $numEpochs $timeout
+        & $dotnet $PSScriptRoot/bin/netcoreapp3.1/EvaluationDriver.dll $experiments/$_ $numEpochs $timeout $defaultCSVPath
     }
 
     Write-Comment -prefix "." -text "Aggregating results, and dumping to csv" -color "yellow"
@@ -31,7 +32,7 @@ elseif ($mode -eq "Bugfinding") {
     Get-ChildItem $experiments -Filter *.test.json |
     Foreach-Object {
         Write-Comment -prefix "..." -text "Running experiment $_" -color "yellow"
-        & $dotnet $PSScriptRoot/bin/netcoreapp3.1/EvaluationDriver.dll $experiments/$_ $numEpochs $timeout
+        & $dotnet $PSScriptRoot/bin/netcoreapp3.1/EvaluationDriver.dll $experiments/$_ $numEpochs $timeout $defaultCSVPath
     }
 
     Write-Comment -prefix "." -text "Aggregating results, and dumping to csv" -color "yellow"
@@ -45,7 +46,7 @@ elseif ($mode -eq "DataNondet") {
     Get-ChildItem $experiments -Filter *.test.json |
     Foreach-Object {
         Write-Comment -prefix "..." -text "Running experiment $_" -color "yellow"
-        & $dotnet $PSScriptRoot/bin/netcoreapp3.1/EvaluationDriver.dll $experiments/$_ $numEpochs $timeout
+        & $dotnet $PSScriptRoot/bin/netcoreapp3.1/EvaluationDriver.dll $experiments/$_ $numEpochs $timeout $defaultCSVPath
     }
 
     Write-Comment -prefix "." -text "Aggregating results, and dumping to csv" -color "yellow"
@@ -59,7 +60,7 @@ elseif ($mode -eq "StateHash") {
     Get-ChildItem $experiments -Filter *.test.json |
     Foreach-Object {
         Write-Comment -prefix "..." -text "Running experiment $_" -color "yellow"
-        & $dotnet $PSScriptRoot/bin/netcoreapp3.1/EvaluationDriver.dll $experiments/$_ $numEpochs $timeout
+        & $dotnet $PSScriptRoot/bin/netcoreapp3.1/EvaluationDriver.dll $experiments/$_ $numEpochs $timeout $defaultCSVPath
     }
 }
 
@@ -69,7 +70,7 @@ elseif ($mode -eq "Perf") {
     Get-ChildItem $experiments -Filter *.test.json |
     Foreach-Object {
         Write-Comment -prefix "..." -text "Running experiment $_" -color "yellow"
-        & $dotnet $PSScriptRoot/bin/netcoreapp3.1/EvaluationDriver.dll $experiments/$_ $numEpochs $timeout
+        & $dotnet $PSScriptRoot/bin/netcoreapp3.1/EvaluationDriver.dll $experiments/$_ 1 $timeout $defaultCSVPath
     }
 
     Write-Comment -prefix "." -text "Aggregating results, and dumping to csv" -color "yellow"
@@ -80,20 +81,18 @@ elseif ($mode -eq "Perf") {
 elseif ($mode -eq "StateCoverage") {
     Write-Comment -prefix ".." -text "Running in mode $mode" -color "yellow"
     $testerPath = "$PSScriptRoot/../bin/netcoreapp3.1/PSharpTester.dll"
-    Write-Comment -prefix "..." -text "Running experiment Raftv1, Scheduler QL" -color "yellow"
-    & $dotnet $testerPath -test:$PSScriptRoot/bin/netcoreapp3.1/Benchmarks.Protocols_BugsDisabled.dll -method:Test_Raftv1 -i:10000 -max-steps:1000:1000 -sch:rl -abstraction-level:default -stateInfoCSV:"$PSScriptRoot/StateCoverage/Raftv1/QL.csv"
-    & Write-Comment -prefix "..." -text "Running experiment Raftv1, Scheduler Random" -color "yellow"
-    & $dotnet $testerPath -test:$PSScriptRoot/bin/netcoreapp3.1/Benchmarks.Protocols_BugsDisabled.dll -method:Test_Raftv1 -i:10000 -max-steps:1000:1000 -sch:random -stateInfoCSV:"$PSScriptRoot/StateCoverage/Raftv1/Random.csv"
-    & Write-Comment -prefix "..." -text "Running experiment Raftv1, Scheduler Greedy" -color "yellow"
-    & $dotnet $testerPath -test:$PSScriptRoot/bin/netcoreapp3.1/Benchmarks.Protocols_BugsDisabled.dll -method:Test_Raftv1 -i:10000 -max-steps:1000:1000 -sch:greedy -stateInfoCSV:"$PSScriptRoot/StateCoverage/Raftv1/Greedy.csv"
-    & Write-Comment -prefix "..." -text "Running experiment Raftv1, Scheduler PCT:3" -color "yellow"
-    & $dotnet $testerPath -test:$PSScriptRoot/bin/netcoreapp3.1/Benchmarks.Protocols_BugsDisabled.dll -method:Test_Raftv1 -i:10000 -max-steps:1000:1000 -sch:pct:3 -stateInfoCSV:"$PSScriptRoot/StateCoverage/Raftv1/PCT3.csv"
-    & Write-Comment -prefix "..." -text "Running experiment Raftv1, Scheduler PCT:10" -color "yellow"
-    & $dotnet $testerPath -test:$PSScriptRoot/bin/netcoreapp3.1/Benchmarks.Protocols_BugsDisabled.dll -method:Test_Raftv1 -i:10000 -max-steps:1000:1000 -sch:pct:10 -stateInfoCSV:"$PSScriptRoot/StateCoverage/Raftv1/PCT10.csv"
-    & Write-Comment -prefix "..." -text "Running experiment Raftv1, Scheduler PCT:30" -color "yellow"
-    & $dotnet $testerPath -test:$PSScriptRoot/bin/netcoreapp3.1/Benchmarks.Protocols_BugsDisabled.dll -method:Test_Raftv1 -i:10000 -max-steps:1000:1000 -sch:pct:30 -stateInfoCSV:"$PSScriptRoot/StateCoverage/Raftv1/PCT30.csv"
-    & Write-Comment -prefix "..." -text "Running experiment Raftv1, Scheduler IDB" -color "yellow"
-    & $dotnet $testerPath -test:$PSScriptRoot/bin/netcoreapp3.1/Benchmarks.Protocols_BugsDisabled.dll -method:Test_Raftv1 -i:10000 -max-steps:1000:1000 -sch:idb -stateInfoCSV:"$PSScriptRoot/StateCoverage/Raftv1/IDB.csv"
+    $raftCsvPath = "$PSScriptRoot/StateCoverage/Raftv1"
+    $fdCsvPath = "$PSScriptRoot/StateCoverage/FailureDetector"
+    $ssCSvPath = "$PSScriptRoot/StateCoverage/SafeStack"
+    Write-Comment -prefix "..." -text "Running experiment Raftv1" -color "yellow"
+    & $dotnet $PSScriptRoot/bin/netcoreapp3.1/EvaluationDriver.dll ./StateCoverage/Raftv1.default.test.json 1 $timeout $raftCsvPath
+    & python3 ./StateCoverage/AggregateResults.py Raftv1
+    & Write-Comment -prefix "..." -text "Running experiment FailureDetector" -color "yellow"
+    & $dotnet $PSScriptRoot/bin/netcoreapp3.1/EvaluationDriver.dll ./StateCoverage/FailureDetector.default.test.json 1 $timeout $fdCsvPath
+    & python3 ./StateCoverage/AggregateResults.py FailureDetector
+    & Write-Comment -prefix "..." -text "Running experiment SafeStack" -color "yellow"
+    & $dotnet $PSScriptRoot/bin/netcoreapp3.1/EvaluationDriver.dll ./StateCoverage/SafeStack.default.test.json 1 $timeout $ssCsvPath
+    & python3 ./StateCoverage/AggregateResults.py SafeStack
 }
 
 else {

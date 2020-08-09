@@ -101,6 +101,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
 
             if (this.StateInfoCSV.Length > 0)
             {
+                this.StateInfoCSV += "/IDB.csv";
                 var csv = new StringBuilder();
                 var header = string.Format($"Step,IDB_States");
                 csv.AppendLine(header);

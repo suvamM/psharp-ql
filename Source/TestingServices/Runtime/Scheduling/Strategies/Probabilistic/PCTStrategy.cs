@@ -84,7 +84,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
         /// <summary>
         /// Save information about state exploration.
         /// </summary>
-        private readonly string StateInfoCSV;
+        private string StateInfoCSV;
 
         /// <summary>
         /// True if a bug was found in the current iteration, else false.
@@ -125,6 +125,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
 
             if (this.StateInfoCSV.Length > 0)
             {
+                this.StateInfoCSV += $"/PCT{this.MaxPrioritySwitchPoints}.csv";
                 var csv = new StringBuilder();
                 var header = string.Format($"Step,PCT{this.MaxPrioritySwitchPoints}_States");
                 csv.AppendLine(header);
