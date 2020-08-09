@@ -10,7 +10,6 @@ def aggregateResults(expName):
 
     combined_csv = pd.merge(left=pd.read_csv(all_filenames[0]), right=pd.read_csv(all_filenames[1]), on='Step')
     
-    print(range(2, len(all_filenames)))
     for i in range(2,len(all_filenames)):
         combined_csv = pd.merge(left=combined_csv, right=pd.read_csv(all_filenames[i]), on='Step')
 

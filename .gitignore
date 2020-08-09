@@ -188,4 +188,5 @@ Benchmarks/Test/out
 Benchmarks/Bugfinding/out
 Benchmarks/DataNondet/out
 Benchmarks/StateHash/out
+Benchmarks/StateCoverage/out
 *.csv
