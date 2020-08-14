@@ -29,7 +29,7 @@ namespace EvaluationDriver
 
         static async Task Main(string[] args)
         {
-            if (args.Length != 4 || !File.Exists(args[0]) || !args[0].EndsWith("test.json"))
+            if (!File.Exists(args[0]) || !args[0].EndsWith("test.json"))
             {
                 Console.WriteLine("Error: expected test configuration file: <file>.test.json");
                 Environment.Exit(1);
@@ -37,7 +37,11 @@ namespace EvaluationDriver
 
             NumEpochs = Convert.ToInt32(args[1]);
             Timeout = Convert.ToInt32(args[2]);
-            StateInfoCSV = args[3].Trim();
+
+            if (args.Length == 4)
+            {
+                StateInfoCSV = args[3].Trim();
+            }
 
             // Parses the command line options to get the configuration.
             Configuration configuration = ParseConfiguration(args[0]);

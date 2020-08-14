@@ -80,7 +80,6 @@ elseif ($mode -eq "Perf") {
 
 elseif ($mode -eq "StateCoverage") {
     Write-Comment -prefix ".." -text "Running in mode $mode" -color "yellow"
-    $testerPath = "$PSScriptRoot/../bin/netcoreapp3.1/PSharpTester.dll"
     $raftCsvPath = "$PSScriptRoot/StateCoverage/Raftv1"
     $fdCsvPath = "$PSScriptRoot/StateCoverage/FailureDetector"
     $ssCSvPath = "$PSScriptRoot/StateCoverage/SafeStack"
