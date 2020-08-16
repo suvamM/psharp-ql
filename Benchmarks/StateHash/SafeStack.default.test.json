@@ -1,11 +1,11 @@
 {
-  "testName": "Test_Triangular_Longest_2",
+  "testName": "Test_SafeStack",
   "assemblyPath" : "Benchmarks.Threading.dll",
-  "outputPath" : "..\\..\\out\\TriangularLongest2\\default",
-  "numEpochs" : 100,
-  "numIterations" : 10000,
+  "outputPath" : "..\\..\\out\\SafeStack\\default",
+  "numIterations" : 1000000,
   "maxSteps" : 1000,
   "abstractionLevel" : "default",
+  "timeout" : 0,
   "strategies" : [
     "QL", "QL-NDN", "Random", "Greedy", "PCT-3", "PCT-10", "PCT-30", "IDB"
   ]

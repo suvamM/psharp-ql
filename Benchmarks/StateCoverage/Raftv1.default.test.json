@@ -1,0 +1,12 @@
+{
+  "testName": "Test_Raftv1",
+  "assemblyPath" : "Benchmarks.Protocols_BugsDisabled.dll",
+  "outputPath" : "../../StateCoverage/out/Raftv1/default",
+  "numEpochs" : 100,
+  "numIterations" : 10241,
+  "maxSteps" : 1000,
+  "abstractionLevel" : "default",
+  "strategies" : [
+    "QL", "Random", "Greedy", "PCT-3", "PCT-10", "PCT-30"
+  ]
+}

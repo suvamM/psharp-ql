@@ -1,0 +1,65 @@
+[
+  {
+    "TestName": "Test_Raftv2",
+    "SchedulerName": "QL",
+    "NumBuggyEpochs": 0,
+    "BugFraction": 0.0,
+    "AvgIterationsToBug": 0.0,
+    "IterStdDev": "NaN",
+    "AvgExplorationTimeSeconds": 249.405
+  },
+  {
+    "TestName": "Test_Raftv2",
+    "SchedulerName": "Random",
+    "NumBuggyEpochs": 0,
+    "BugFraction": 0.0,
+    "AvgIterationsToBug": 0.0,
+    "IterStdDev": "NaN",
+    "AvgExplorationTimeSeconds": 61.079
+  },
+  {
+    "TestName": "Test_Raftv2",
+    "SchedulerName": "Greedy",
+    "NumBuggyEpochs": 0,
+    "BugFraction": 0.0,
+    "AvgIterationsToBug": 0.0,
+    "IterStdDev": "NaN",
+    "AvgExplorationTimeSeconds": 77.339
+  },
+  {
+    "TestName": "Test_Raftv2",
+    "SchedulerName": "PCT-3",
+    "NumBuggyEpochs": 0,
+    "BugFraction": 0.0,
+    "AvgIterationsToBug": 0.0,
+    "IterStdDev": "NaN",
+    "AvgExplorationTimeSeconds": 60.62
+  },
+  {
+    "TestName": "Test_Raftv2",
+    "SchedulerName": "PCT-10",
+    "NumBuggyEpochs": 0,
+    "BugFraction": 0.0,
+    "AvgIterationsToBug": 0.0,
+    "IterStdDev": "NaN",
+    "AvgExplorationTimeSeconds": 60.069
+  },
+  {
+    "TestName": "Test_Raftv2",
+    "SchedulerName": "PCT-30",
+    "NumBuggyEpochs": 0,
+    "BugFraction": 0.0,
+    "AvgIterationsToBug": 0.0,
+    "IterStdDev": "NaN",
+    "AvgExplorationTimeSeconds": 59.389
+  },
+  {
+    "TestName": "Test_Raftv2",
+    "SchedulerName": "IDB",
+    "NumBuggyEpochs": 0,
+    "BugFraction": 0.0,
+    "AvgIterationsToBug": 0.0,
+    "IterStdDev": "NaN",
+    "AvgExplorationTimeSeconds": 48.993
+  }
+]

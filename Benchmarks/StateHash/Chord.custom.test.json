@@ -1,0 +1,12 @@
+{
+  "testName": "Test_Chord",
+  "assemblyPath" : "Benchmarks.Protocols.dll",
+  "outputPath" : "..\\..\\out\\Chord\\custom",
+  "numIterations" : 1000000,
+  "maxSteps" : 1000,
+  "abstractionLevel" : "custom",
+  "timeout" : 0,
+  "strategies" : [
+    "QL"
+  ]
+}

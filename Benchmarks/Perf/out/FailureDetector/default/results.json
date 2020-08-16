@@ -1,0 +1,65 @@
+[
+  {
+    "TestName": "Test_FailureDetector",
+    "SchedulerName": "QL",
+    "NumBuggyEpochs": 0,
+    "BugFraction": 0.0,
+    "AvgIterationsToBug": 0.0,
+    "IterStdDev": "NaN",
+    "AvgExplorationTimeSeconds": 92.057
+  },
+  {
+    "TestName": "Test_FailureDetector",
+    "SchedulerName": "Random",
+    "NumBuggyEpochs": 0,
+    "BugFraction": 0.0,
+    "AvgIterationsToBug": 0.0,
+    "IterStdDev": "NaN",
+    "AvgExplorationTimeSeconds": 83.093
+  },
+  {
+    "TestName": "Test_FailureDetector",
+    "SchedulerName": "Greedy",
+    "NumBuggyEpochs": 0,
+    "BugFraction": 0.0,
+    "AvgIterationsToBug": 0.0,
+    "IterStdDev": "NaN",
+    "AvgExplorationTimeSeconds": 87.521
+  },
+  {
+    "TestName": "Test_FailureDetector",
+    "SchedulerName": "PCT-3",
+    "NumBuggyEpochs": 0,
+    "BugFraction": 0.0,
+    "AvgIterationsToBug": 0.0,
+    "IterStdDev": "NaN",
+    "AvgExplorationTimeSeconds": 90.32
+  },
+  {
+    "TestName": "Test_FailureDetector",
+    "SchedulerName": "PCT-10",
+    "NumBuggyEpochs": 0,
+    "BugFraction": 0.0,
+    "AvgIterationsToBug": 0.0,
+    "IterStdDev": "NaN",
+    "AvgExplorationTimeSeconds": 90.993
+  },
+  {
+    "TestName": "Test_FailureDetector",
+    "SchedulerName": "PCT-30",
+    "NumBuggyEpochs": 0,
+    "BugFraction": 0.0,
+    "AvgIterationsToBug": 0.0,
+    "IterStdDev": "NaN",
+    "AvgExplorationTimeSeconds": 92.251
+  },
+  {
+    "TestName": "Test_FailureDetector",
+    "SchedulerName": "IDB",
+    "NumBuggyEpochs": 0,
+    "BugFraction": 0.0,
+    "AvgIterationsToBug": 0.0,
+    "IterStdDev": "NaN",
+    "AvgExplorationTimeSeconds": 82.089
+  }
+]

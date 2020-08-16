@@ -78,8 +78,8 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
         /// Initializes a new instance of the <see cref="NoRandomQLearningStrategy"/> class.
         /// It uses the specified random number generator.
         /// </summary>
-        public NoRandomQLearningStrategy(int maxSteps, IRandomNumberGenerator random)
-            : base(maxSteps, random)
+        public NoRandomQLearningStrategy(int maxSteps, string stateInfoCSV, IRandomNumberGenerator random)
+            : base(maxSteps, stateInfoCSV, random)
         {
             this.OperationQTable = new Dictionary<int, Dictionary<ulong, double>>();
             this.ExecutionPath = new LinkedList<(ulong, AsyncOperationType, int)>();

@@ -1,0 +1,12 @@
+{
+  "testName": "Test_Paxos",
+  "assemblyPath" : "Benchmarks.Protocols.dll",
+  "outputPath" : "..\\..\\out\\Paxos",
+  "numIterations" : 1000000,
+  "maxSteps" : 1000,
+  "abstractionLevel" : "custom",
+  "timeout" : 0,
+  "strategies" : [
+    "QL"
+  ]
+}

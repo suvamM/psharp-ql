@@ -1,0 +1,65 @@
+[
+  {
+    "TestName": "Test_Paxos",
+    "SchedulerName": "QL",
+    "NumBuggyEpochs": 0,
+    "BugFraction": 0.0,
+    "AvgIterationsToBug": 0.0,
+    "IterStdDev": "NaN",
+    "AvgExplorationTimeSeconds": 70.219
+  },
+  {
+    "TestName": "Test_Paxos",
+    "SchedulerName": "Random",
+    "NumBuggyEpochs": 0,
+    "BugFraction": 0.0,
+    "AvgIterationsToBug": 0.0,
+    "IterStdDev": "NaN",
+    "AvgExplorationTimeSeconds": 50.714
+  },
+  {
+    "TestName": "Test_Paxos",
+    "SchedulerName": "Greedy",
+    "NumBuggyEpochs": 0,
+    "BugFraction": 0.0,
+    "AvgIterationsToBug": 0.0,
+    "IterStdDev": "NaN",
+    "AvgExplorationTimeSeconds": 54.898
+  },
+  {
+    "TestName": "Test_Paxos",
+    "SchedulerName": "PCT-3",
+    "NumBuggyEpochs": 0,
+    "BugFraction": 0.0,
+    "AvgIterationsToBug": 0.0,
+    "IterStdDev": "NaN",
+    "AvgExplorationTimeSeconds": 60.121
+  },
+  {
+    "TestName": "Test_Paxos",
+    "SchedulerName": "PCT-10",
+    "NumBuggyEpochs": 0,
+    "BugFraction": 0.0,
+    "AvgIterationsToBug": 0.0,
+    "IterStdDev": "NaN",
+    "AvgExplorationTimeSeconds": 59.447
+  },
+  {
+    "TestName": "Test_Paxos",
+    "SchedulerName": "PCT-30",
+    "NumBuggyEpochs": 0,
+    "BugFraction": 0.0,
+    "AvgIterationsToBug": 0.0,
+    "IterStdDev": "NaN",
+    "AvgExplorationTimeSeconds": 56.352
+  },
+  {
+    "TestName": "Test_Paxos",
+    "SchedulerName": "IDB",
+    "NumBuggyEpochs": 0,
+    "BugFraction": 0.0,
+    "AvgIterationsToBug": 0.0,
+    "IterStdDev": "NaN",
+    "AvgExplorationTimeSeconds": 39.437
+  }
+]

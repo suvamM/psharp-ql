@@ -5,7 +5,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Text;
 
 using Microsoft.PSharp.IO;
 
@@ -55,10 +57,24 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
         private readonly SortedSet<int> PriorityChangePoints;
 
         /// <summary>
-        /// Map from values representing program states to their transition
-        /// frequency in the current execution path.
+        /// The set of default hashed states.
         /// </summary>
-        private readonly Dictionary<int, ulong> TransitionFrequencies;
+        private readonly HashSet<int> DefaultHashedStates;
+
+        /// <summary>
+        /// The set of inbox-only hashed states.
+        /// </summary>
+        private readonly HashSet<int> InboxOnlyHashedStates;
+
+        /// <summary>
+        /// The set of custom hashed states.
+        /// </summary>
+        private readonly HashSet<int> CustomHashedStates;
+
+        /// <summary>
+        /// The set of full hashed states.
+        /// </summary>
+        private readonly HashSet<int> FullHashedStates;
 
         /// <summary>
         /// The number of explored executions.
@@ -66,16 +82,23 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
         private int Epochs;
 
         /// <summary>
+        /// Save information about state exploration.
+        /// </summary>
+        private string StateInfoCSV;
+
+        /// <summary>
         /// True if a bug was found in the current iteration, else false.
         /// </summary>
+#pragma warning disable 414 // Remove unread private members
         private bool IsBugFound;
+#pragma warning restore 414 // Remove unread private members
 
         /// <summary>
         /// Initializes a new instance of the <see cref="PCTStrategy"/> class. It uses
         /// the default random number generator (seed is based on current time).
         /// </summary>
-        public PCTStrategy(int maxSteps, int maxPrioritySwitchPoints)
-            : this(maxSteps, maxPrioritySwitchPoints, new DefaultRandomNumberGenerator(DateTime.Now.Millisecond))
+        public PCTStrategy(int maxSteps, int maxPrioritySwitchPoints, string stateInfoCSV)
+            : this(maxSteps, maxPrioritySwitchPoints, stateInfoCSV, new DefaultRandomNumberGenerator(DateTime.Now.Millisecond))
         {
         }
 
@@ -83,7 +106,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
         /// Initializes a new instance of the <see cref="PCTStrategy"/> class.
         /// It uses the specified random number generator.
         /// </summary>
-        public PCTStrategy(int maxSteps, int maxPrioritySwitchPoints, IRandomNumberGenerator random)
+        public PCTStrategy(int maxSteps, int maxPrioritySwitchPoints, string stateInfoCSV, IRandomNumberGenerator random)
         {
             this.RandomNumberGenerator = random;
             this.MaxScheduledSteps = maxSteps;
@@ -92,9 +115,22 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
             this.MaxPrioritySwitchPoints = maxPrioritySwitchPoints;
             this.PrioritizedOperations = new List<IAsyncOperation>();
             this.PriorityChangePoints = new SortedSet<int>();
-            this.TransitionFrequencies = new Dictionary<int, ulong>();
+            this.DefaultHashedStates = new HashSet<int>();
+            this.InboxOnlyHashedStates = new HashSet<int>();
+            this.CustomHashedStates = new HashSet<int>();
+            this.FullHashedStates = new HashSet<int>();
             this.Epochs = 0;
             this.IsBugFound = false;
+            this.StateInfoCSV = stateInfoCSV;
+
+            if (this.StateInfoCSV.Length > 0)
+            {
+                this.StateInfoCSV += $"/PCT{this.MaxPrioritySwitchPoints}.csv";
+                var csv = new StringBuilder();
+                var header = string.Format($"Step,PCT{this.MaxPrioritySwitchPoints}_States");
+                csv.AppendLine(header);
+                File.WriteAllText(this.StateInfoCSV, csv.ToString());
+            }
         }
 
         /// <summary>
@@ -125,15 +161,10 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
         private int CaptureExecutionStep(IAsyncOperation current)
         {
             int state = current.DefaultHashedState;
-
-            if (!this.TransitionFrequencies.ContainsKey(state))
-            {
-                this.TransitionFrequencies.Add(state, 0);
-            }
-
-            // Increment the state transition frequency.
-            this.TransitionFrequencies[state]++;
-
+            this.DefaultHashedStates.Add(current.DefaultHashedState);
+            this.InboxOnlyHashedStates.Add(current.InboxOnlyHashedState);
+            this.CustomHashedStates.Add(current.CustomHashedState);
+            this.FullHashedStates.Add(current.FullHashedState);
             return state;
         }
 
@@ -266,17 +297,20 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
         public bool PrepareForNextIteration()
         {
 #pragma warning disable SA1005
-            if (this.IsBugFound || this.Epochs == 10 || this.Epochs == 20 || this.Epochs == 40 || this.Epochs == 80 ||
-                this.Epochs == 160 || this.Epochs == 320 || this.Epochs == 640 || this.Epochs == 1280 || this.Epochs == 2560 ||
-                this.Epochs == 5120 || this.Epochs == 10000 || this.Epochs == 10240 || this.Epochs == 20480 || this.Epochs == 40960 ||
-                this.Epochs == 81920 || this.Epochs == 163840)
+            if (this.Epochs == 320 || this.Epochs == 640 || this.Epochs == 1280 || this.Epochs == 2560 ||
+                this.Epochs == 5120 || this.Epochs == 10240)
             {
-                Console.WriteLine($"==================> #{this.Epochs} UniqueStates (size: {this.TransitionFrequencies.Count})");
+                if (this.StateInfoCSV.Length > 0)
+                {
+                    var csv = new StringBuilder();
+                    var header = string.Format($"{this.Epochs},{this.DefaultHashedStates.Count}");
+                    csv.AppendLine(header);
+                    File.AppendAllText(this.StateInfoCSV, csv.ToString());
+                }
             }
-
+#pragma warning restore SA1005
             this.IsBugFound = false;
             this.Epochs++;
-#pragma warning restore SA1005
 
             this.ScheduleLength = Math.Max(this.ScheduleLength, this.ScheduledSteps);
             this.ScheduledSteps = 0;

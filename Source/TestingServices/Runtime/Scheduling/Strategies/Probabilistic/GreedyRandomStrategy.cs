@@ -5,7 +5,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Text;
 
 namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
 {
@@ -56,8 +58,8 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
         /// Initializes a new instance of the <see cref="GreedyRandomStrategy"/> class.
         /// It uses the specified random number generator.
         /// </summary>
-        public GreedyRandomStrategy(int maxSteps, IRandomNumberGenerator random)
-            : base(maxSteps, random)
+        public GreedyRandomStrategy(int maxSteps, string stateInfoCSV, IRandomNumberGenerator random)
+            : base(maxSteps, stateInfoCSV, random)
         {
             this.OperationStateInfo = new Dictionary<int, Dictionary<ulong, int>>();
             this.ExecutionPath = new LinkedList<(IAsyncOperation, int, bool)>();
@@ -66,6 +68,15 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
             this.FalseChoiceOpValue = ulong.MaxValue - 1;
             this.MinIntegerChoiceOpValue = ulong.MaxValue - 2;
             this.Epochs = 0;
+
+            if (this.StateInfoCSV.Length > 0)
+            {
+                this.StateInfoCSV += "/Greedy.csv";
+                var csv = new StringBuilder();
+                var header = string.Format("Step,Greedy_States");
+                csv.AppendLine(header);
+                File.WriteAllText(this.StateInfoCSV, csv.ToString());
+            }
         }
 
         /// <summary>
@@ -321,12 +332,16 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
             }
 
 #pragma warning disable SA1005
-            if (this.IsBugFound || this.Epochs == 10 || this.Epochs == 20 || this.Epochs == 40 || this.Epochs == 80 ||
-                this.Epochs == 160 || this.Epochs == 320 || this.Epochs == 640 || this.Epochs == 1280 || this.Epochs == 2560 ||
-                this.Epochs == 5120 || this.Epochs == 10240 || this.Epochs == 20480 || this.Epochs == 40960 ||
-                this.Epochs == 81920 || this.Epochs == 163840)
+            if (this.Epochs == 320 || this.Epochs == 640 || this.Epochs == 1280 || this.Epochs == 2560 ||
+                this.Epochs == 5120 || this.Epochs == 10240)
             {
-                Console.WriteLine($"==================> #{this.Epochs} UniqueStates (size: {this.TransitionFrequencies.Count})");
+                if (this.StateInfoCSV.Length > 0)
+                {
+                    var csv = new StringBuilder();
+                    var header = string.Format($"{this.Epochs},{this.TransitionFrequencies.Count}");
+                    csv.AppendLine(header);
+                    File.AppendAllText(this.StateInfoCSV, csv.ToString());
+                }
             }
 #pragma warning restore SA1005
 

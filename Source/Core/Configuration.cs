@@ -138,6 +138,12 @@ namespace Microsoft.PSharp
         public AbstractionLevel AbstractionLevel;
 
         /// <summary>
+        /// Dump number of visited states in this CSV file.
+        /// </summary>
+        [DataMember]
+        public string StateInfoCSV;
+
+        /// <summary>
         /// Number of scheduling iterations.
         /// </summary>
         [DataMember]
@@ -455,6 +461,7 @@ namespace Microsoft.PSharp
 
             this.SchedulingStrategy = SchedulingStrategy.Random;
             this.AbstractionLevel = AbstractionLevel.Default;
+            this.StateInfoCSV = string.Empty;
             this.SchedulingIterations = 1;
             this.SchedulingSeed = null;
 
