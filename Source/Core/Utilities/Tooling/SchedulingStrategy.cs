@@ -117,6 +117,12 @@ namespace Microsoft.PSharp.Utilities
         FairIterativeDelayBounding,
 
         /// <summary>
+        /// Basic Q learning scheduling.
+        /// </summary>
+        [EnumMember(Value = "BasicQLearning")]
+        BasicQLearning,
+
+        /// <summary>
         /// Q learning scheduling.
         /// </summary>
         [EnumMember(Value = "QLearning")]

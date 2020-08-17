@@ -7,6 +7,6 @@
   "maxSteps" : 1000,
   "abstractionLevel" : "default",
   "strategies" : [
-    "QL", "Random", "Greedy", "PCT-3", "PCT-10", "PCT-30", "IDB"
+    "BasicQL","QL", "Random", "Greedy", "PCT-3", "PCT-10", "PCT-30", "IDB"
   ]
 }

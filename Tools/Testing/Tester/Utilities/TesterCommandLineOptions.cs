@@ -149,6 +149,10 @@ namespace Microsoft.PSharp.Utilities
                 {
                     this.Configuration.SchedulingStrategy = SchedulingStrategy.FairIterativeDelayBounding;
                 }
+                else if (IsMatch(scheduler, @"^basic-rl$"))
+                {
+                    this.Configuration.SchedulingStrategy = SchedulingStrategy.BasicQLearning;
+                }
                 else if (IsMatch(scheduler, @"^rl$"))
                 {
                     this.Configuration.SchedulingStrategy = SchedulingStrategy.QLearning;
@@ -417,6 +421,7 @@ namespace Microsoft.PSharp.Utilities
                 this.Configuration.SchedulingStrategy != SchedulingStrategy.IterativeDelayBounding &&
                 this.Configuration.SchedulingStrategy != SchedulingStrategy.FairDelayBounding &&
                 this.Configuration.SchedulingStrategy != SchedulingStrategy.FairIterativeDelayBounding &&
+                this.Configuration.SchedulingStrategy != SchedulingStrategy.BasicQLearning &&
                 this.Configuration.SchedulingStrategy != SchedulingStrategy.QLearning &&
                 this.Configuration.SchedulingStrategy != SchedulingStrategy.FairQLearning &&
                 this.Configuration.SchedulingStrategy != SchedulingStrategy.NoRandomQLearning &&

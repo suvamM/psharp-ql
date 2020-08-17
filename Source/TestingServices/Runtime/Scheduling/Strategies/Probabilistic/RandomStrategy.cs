@@ -93,7 +93,8 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
             this.Epochs = 0;
             this.StateInfoCSV = stateInfoCSV;
 
-            if (this.GetType() != typeof(QLearningStrategy) &&
+            if (this.GetType() != typeof(BasicQLearningStrategy) &&
+                this.GetType() != typeof(QLearningStrategy) &&
                 this.GetType() != typeof(GreedyRandomStrategy))
             {
                 if (this.StateInfoCSV.Length > 0)
@@ -178,7 +179,8 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
         /// </summary>
         public virtual bool PrepareForNextIteration()
         {
-            if (this.GetType() != typeof(QLearningStrategy) &&
+            if (this.GetType() != typeof(BasicQLearningStrategy) &&
+                this.GetType() != typeof(QLearningStrategy) &&
                 this.GetType() != typeof(GreedyRandomStrategy))
             {
 #pragma warning disable SA1005

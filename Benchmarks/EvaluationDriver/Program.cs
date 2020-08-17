@@ -17,6 +17,7 @@ namespace EvaluationDriver
 
         private static readonly Dictionary<string, string> SchedulerTypes = new Dictionary<string, string>
         {
+            { "BasicQL", "basic-rl" },
             { "QL", "rl" },
             { "QL-NDN", "no-random-rl" },
             { "Random", "random" },

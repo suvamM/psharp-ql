@@ -321,6 +321,13 @@ namespace Microsoft.PSharp.TestingServices
                 var suffixStrategy = new RandomStrategy(this.Configuration.MaxFairSchedulingSteps, this.Configuration.StateInfoCSV, this.RandomNumberGenerator);
                 this.Strategy = new ComboStrategy(prefixStrategy, suffixStrategy);
             }
+            else if (this.Configuration.SchedulingStrategy == SchedulingStrategy.BasicQLearning)
+            {
+                this.Strategy = new BasicQLearningStrategy(this.Configuration.AbstractionLevel,
+                    this.Configuration.StateInfoCSV,
+                    this.Configuration.MaxFairSchedulingSteps,
+                    this.RandomNumberGenerator);
+            }
             else if (this.Configuration.SchedulingStrategy == SchedulingStrategy.QLearning)
             {
                 this.Strategy = new QLearningStrategy(this.Configuration.AbstractionLevel,
@@ -763,6 +770,7 @@ namespace Microsoft.PSharp.TestingServices
                this.Configuration.SchedulingStrategy == SchedulingStrategy.FairDelayBounding ||
                this.Configuration.SchedulingStrategy == SchedulingStrategy.IterativeDelayBounding ||
                this.Configuration.SchedulingStrategy == SchedulingStrategy.FairIterativeDelayBounding ||
+               this.Configuration.SchedulingStrategy == SchedulingStrategy.BasicQLearning ||
                this.Configuration.SchedulingStrategy == SchedulingStrategy.QLearning ||
                this.Configuration.SchedulingStrategy == SchedulingStrategy.FairQLearning ||
                this.Configuration.SchedulingStrategy == SchedulingStrategy.NoRandomQLearning ||
