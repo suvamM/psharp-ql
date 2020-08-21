@@ -117,6 +117,12 @@ namespace Microsoft.PSharp.Utilities
         FairIterativeDelayBounding,
 
         /// <summary>
+        /// LargestInboxFirst scheduling.
+        /// </summary>
+        [EnumMember(Value = "LargestInboxFirst")]
+        LargestInboxFirst,
+
+        /// <summary>
         /// Q learning scheduling.
         /// </summary>
         [EnumMember(Value = "QLearning")]

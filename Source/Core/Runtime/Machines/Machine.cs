@@ -1784,5 +1784,13 @@ namespace Microsoft.PSharp
             // Invoke user callback.
             this.OnHalt();
         }
+
+        /// <summary>
+        /// Returns inbox size.
+        /// </summary>
+        public int GetInboxSize()
+        {
+            return this.Inbox.Size;
+        }
     }
 }
