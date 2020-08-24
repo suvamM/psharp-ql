@@ -33,11 +33,5 @@ namespace Benchmarks.Protocols
         {
             Paxos.Execute(runtime);
         }
-
-        [Test]
-        public static void Test_PingPong(IMachineRuntime runtime)
-        {
-            PingPong.Execute(runtime);
-        }
     }
 }
