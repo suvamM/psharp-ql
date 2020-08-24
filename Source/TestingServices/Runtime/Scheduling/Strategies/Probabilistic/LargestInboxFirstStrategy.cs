@@ -8,8 +8,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-
 using Microsoft.PSharp.IO;
+using Microsoft.PSharp.Runtime;
+using Microsoft.PSharp.TestingServices.Runtime;
 using Microsoft.PSharp.TestingServices.Threading;
 
 namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
@@ -82,36 +83,43 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
             int highestInboxSize = 0;
             next = null;
 
+            LinkedList<IAsyncOperation> setOfOperations = new LinkedList<IAsyncOperation>();
+            // Console.WriteLine("---------------- Start of Debug print----------------");
+
             foreach (var op in enabledOperations)
             {
                 MachineOperation mo = (MachineOperation)op;
                 if (mo.Machine is Machine)
                 {
-                    Machine machine = (Machine)((MachineOperation)op).Machine;
-                    if (highestInboxSize < machine.GetInboxSize())
+                    Machine machine = (Machine)mo.Machine;
+                    // Console.WriteLine("Machine Name: {0}, Inbox Size: {1}, OperationId: {2}.", machine.Id, machine.GetInboxSize(), op.GetHashCode());
+                    if (highestInboxSize == machine.GetInboxSize())
+                    {
+                        setOfOperations.AddLast(op);
+                    }
+                    else if (highestInboxSize < machine.GetInboxSize())
                     {
                         highestInboxSize = machine.GetInboxSize();
-                        next = op;
+                        setOfOperations.Clear();
+                        setOfOperations.AddLast(op);
                     }
                 }
             }
 
-            if (next == null)
+            if (setOfOperations.Count > 0)
             {
-                next = enabledOperations.First<IAsyncOperation>();
+                int randomIndex = this.RandomNumberGenerator.Next(setOfOperations.Count);
+                next = setOfOperations.ElementAt(randomIndex);
             }
 
-            /* foreach (var op in enabledOperations)
+            if (next == null)
             {
-                MachineOperation mo = (MachineOperation)op;
-                Machine machine = (Machine)((MachineOperation)op).Machine;
-                if (highestInboxSize < machine.GetInboxSize())
-                {
-                    highestInboxSize = machine.GetInboxSize();
-                    next = op;
-                }
-            } */
+                int randomIndex = this.RandomNumberGenerator.Next(enabledOperations.Count);
+                next = enabledOperations.ElementAt(randomIndex);
+            }
 
+            // Console.WriteLine("Chosen Opeartion: {0}", next.GetHashCode());
+            // Console.WriteLine("---------------- End of Debug print----------------");
             this.ScheduledSteps++;
             return true;
         }

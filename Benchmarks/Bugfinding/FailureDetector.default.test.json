@@ -7,6 +7,6 @@
   "maxSteps" : 200,
   "abstractionLevel" : "default",
   "strategies" : [
-    "LargestInbox", "QL", "Random", "Greedy", "PCT-3", "PCT-10", "PCT-30", "IDB"
+    "LargestInbox"
   ]
 }
