@@ -355,6 +355,11 @@ namespace Microsoft.PSharp.TestingServices
                 this.Strategy = new LargestInboxFirstStrategy(this.Configuration.MaxUnfairSchedulingSteps, this.Configuration.StateInfoCSV,
                    this.RandomNumberGenerator);
             }
+            else if (this.Configuration.SchedulingStrategy == SchedulingStrategy.RunToCompletionPCT)
+            {
+                this.Strategy = new RunToCompletionPCTStrategy(this.Configuration.MaxUnfairSchedulingSteps, this.Configuration.StateInfoCSV,
+                   this.RandomNumberGenerator);
+            }
             else if (this.Configuration.SchedulingStrategy == SchedulingStrategy.Portfolio)
             {
                 Error.ReportAndExit("Portfolio testing strategy is only " +
@@ -763,6 +768,7 @@ namespace Microsoft.PSharp.TestingServices
                this.Configuration.SchedulingStrategy == SchedulingStrategy.GreedyRandom ||
                this.Configuration.SchedulingStrategy == SchedulingStrategy.FairGreedyRandom ||
                this.Configuration.SchedulingStrategy == SchedulingStrategy.LargestInboxFirst ||
+               this.Configuration.SchedulingStrategy == SchedulingStrategy.RunToCompletionPCT ||
                this.Configuration.SchedulingStrategy == SchedulingStrategy.PCT ||
                this.Configuration.SchedulingStrategy == SchedulingStrategy.FairPCT ||
                this.Configuration.SchedulingStrategy == SchedulingStrategy.DelayBounding ||

@@ -77,6 +77,10 @@ namespace Microsoft.PSharp.Utilities
                 {
                     this.Configuration.SchedulingStrategy = SchedulingStrategy.LargestInboxFirst;
                 }
+                else if (IsMatch(scheduler, @"^rtc-pct$"))
+                {
+                    this.Configuration.SchedulingStrategy = SchedulingStrategy.RunToCompletionPCT;
+                }
                 else if (IsMatch(scheduler, @"^pct"))
                 {
                     int i = 0;
@@ -412,6 +416,7 @@ namespace Microsoft.PSharp.Utilities
                 this.Configuration.SchedulingStrategy != SchedulingStrategy.GreedyRandom &&
                 this.Configuration.SchedulingStrategy != SchedulingStrategy.FairGreedyRandom &&
                 this.Configuration.SchedulingStrategy != SchedulingStrategy.LargestInboxFirst &&
+                this.Configuration.SchedulingStrategy != SchedulingStrategy.RunToCompletionPCT &&
                 this.Configuration.SchedulingStrategy != SchedulingStrategy.PCT &&
                 this.Configuration.SchedulingStrategy != SchedulingStrategy.FairPCT &&
                 this.Configuration.SchedulingStrategy != SchedulingStrategy.DFS &&

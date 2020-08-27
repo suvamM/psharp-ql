@@ -6,7 +6,8 @@
   "numIterations" : 10000,
   "maxSteps" : 1000,
   "abstractionLevel" : "default",
-  "strategies" : [
-    "LargestInbox"
+  "strategies": [
+    "LargestInbox",
+    "RunToCompletionPCT"
   ]
 }
