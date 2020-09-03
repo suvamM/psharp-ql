@@ -61,18 +61,36 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
         private readonly string StateInfoCSV;
 
         /// <summary>
+        /// Approximate length of the schedule across all iterations.
+        /// </summary>
+        private int ScheduleLength;
+
+        /// <summary>
+        /// Max number of priority switch points.
+        /// </summary>
+        private readonly int MaxPrioritySwitchPoints;
+
+        /// <summary>
+        /// Set of priority change points.
+        /// </summary>
+        private readonly SortedSet<int> PriorityChangePoints;
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="RunToCompletionPCTStrategy"/> class.
         /// It uses the specified random number generator.
         /// </summary>
-        public RunToCompletionPCTStrategy(int maxSteps, string stateInfoCSV, IRandomNumberGenerator random)
+        public RunToCompletionPCTStrategy(int maxSteps, int maxPrioritySwitchPoints, string stateInfoCSV, IRandomNumberGenerator random)
         {
             this.RandomNumberGenerator = random;
             this.MaxScheduledSteps = maxSteps;
+            this.MaxPrioritySwitchPoints = maxPrioritySwitchPoints;
             this.ScheduledSteps = 0;
+            this.ScheduleLength = 0;
             this.Epochs = 0;
             this.StateInfoCSV = stateInfoCSV;
             this.PrioritizedMachineIds = new LinkedList<ulong>();
             this.LastParticipatedMachineIds = new HashSet<ulong>();
+            this.PriorityChangePoints = new SortedSet<int>();
         }
 
         /// <summary>
@@ -87,10 +105,10 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
                 return false;
             }
 
-            // Console.WriteLine("---------------- Start of Debug print----------------");
+            Console.WriteLine("---------------- Start (GetNext() decision) of Log print----------------");
 
             HashSet<ulong> machinesParInCurrentDecision = new HashSet<ulong>();
-            HashSet<ulong> updateMachinePriority = new HashSet<ulong>();
+            HashSet<ulong> updateMachinePrioritySet = new HashSet<ulong>();
 
             // this.CaptureExecutionStep(current);
             next = null;
@@ -98,30 +116,31 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
             var enabledOperations = ops.Where(op => op.Status is AsyncOperationStatus.Enabled).ToList();
             foreach (var op in enabledOperations)
             {
-                MachineOperation mo = (MachineOperation)op;
-                if (mo.Machine is Machine)
+                if (op is MachineOperation)
                 {
-                    Machine machine = (Machine)mo.Machine;
-
-                    if (!this.PrioritizedMachineIds.Contains(mo.Machine.Id.Value))
+                    MachineOperation mo = op as MachineOperation;
+                    if (mo.Machine is Machine)
                     {
-                        updateMachinePriority.Add(mo.Machine.Id.Value);
-                    }
-                    else if (!this.LastParticipatedMachineIds.Contains(mo.Machine.Id.Value) && machine.GetInboxSize() > 0)
-                    {
-                        updateMachinePriority.Add(mo.Machine.Id.Value);
-                    }
+                        if (!this.PrioritizedMachineIds.Contains(mo.Machine.Id.Value))
+                        {
+                            updateMachinePrioritySet.Add(mo.Machine.Id.Value);
+                        }
+                        else if (!this.LastParticipatedMachineIds.Contains(mo.Machine.Id.Value))
+                        {
+                            updateMachinePrioritySet.Add(mo.Machine.Id.Value);
+                        }
 
-                    machinesParInCurrentDecision.Add(mo.Machine.Id.Value);
+                        machinesParInCurrentDecision.Add(mo.Machine.Id.Value);
+                    }
                 }
             }
 
-            var size = updateMachinePriority.Count;
+            var size = updateMachinePrioritySet.Count;
             for (int i = 0; i < size; i++)
             {
-                int randomIndex = this.RandomNumberGenerator.Next(updateMachinePriority.Count);
-                var machineId = updateMachinePriority.ElementAt<ulong>(randomIndex);
-                updateMachinePriority.Remove(machineId);
+                int randomIndex = this.RandomNumberGenerator.Next(updateMachinePrioritySet.Count);
+                var machineId = updateMachinePrioritySet.ElementAt<ulong>(randomIndex);
+                updateMachinePrioritySet.Remove(machineId);
                 if (this.PrioritizedMachineIds.Contains(machineId))
                 {
                     this.PrioritizedMachineIds.Remove(machineId);
@@ -142,10 +161,34 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
             foreach (var op in enabledOperations)
             {
                 MachineOperation mo = (MachineOperation)op;
-                Console.Write("{0}({1})-", op.GetHashCode(), mo.Machine.Id.Value);
+                if (mo.Machine is Machine)
+                {
+                    Machine machine = (Machine)mo.Machine;
+                    Console.Write("(OprId:{0},MacId:{1},Inbox:{2})-", op.GetHashCode(), mo.Machine.Id, machine.GetInboxSize());
+                }
             }
 
             Console.WriteLine(" "); */
+
+            if (this.PriorityChangePoints.Contains(this.ScheduledSteps))
+            {
+                if (machinesParInCurrentDecision.Count == 1 || size > 0)
+                {
+                    this.MovePriorityChangePointForward();
+                }
+                else
+                {
+                    foreach (var machineId in this.PrioritizedMachineIds)
+                    {
+                        if (machinesParInCurrentDecision.Contains(machineId))
+                        {
+                            this.PrioritizedMachineIds.Remove(machineId);
+                            this.PrioritizedMachineIds.AddLast(machineId);
+                            break;
+                        }
+                    }
+                }
+            }
 
             foreach (var machineId in this.PrioritizedMachineIds)
             {
@@ -153,7 +196,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
                 {
                     foreach (var op in enabledOperations)
                     {
-                        MachineOperation mo = (MachineOperation)op;
+                        MachineOperation mo = op as MachineOperation;
                         if ((mo.Machine is Machine) && mo.Machine.Id.Value == machineId && next == null)
                         {
                             next = op;
@@ -173,10 +216,27 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
             }
 
             this.LastParticipatedMachineIds = machinesParInCurrentDecision;
-            // Console.WriteLine("Chosen Opeartion: {0}", next.GetHashCode());
-            // Console.WriteLine("---------------- End of Debug print----------------");
+            // Console.WriteLine("Chosen Operation: {0}", next.GetHashCode());
+            // Console.WriteLine("---------------- End (GetNext() decision) of Debug print----------------");
             this.ScheduledSteps++;
             return true;
+        }
+
+        /// <summary>
+        /// Moves the current priority change point forward. This is a useful
+        /// optimization when a priority change point is assigned in either a
+        /// sequential execution or a nondeterministic choice.
+        /// </summary>
+        private void MovePriorityChangePointForward()
+        {
+            this.PriorityChangePoints.Remove(this.ScheduledSteps);
+            var newPriorityChangePoint = this.ScheduledSteps + 1;
+            while (this.PriorityChangePoints.Contains(newPriorityChangePoint))
+            {
+                newPriorityChangePoint++;
+            }
+
+            this.PriorityChangePoints.Add(newPriorityChangePoint);
         }
 
         /// <summary>
@@ -223,11 +283,43 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
         {
             this.IsBugFound = false;
             this.Epochs++;
+
+            this.ScheduleLength = Math.Max(this.ScheduleLength, this.ScheduledSteps);
             this.ScheduledSteps = 0;
+
             this.LastParticipatedMachineIds.Clear();
             this.PrioritizedMachineIds.Clear();
+            this.PriorityChangePoints.Clear();
+
+            var range = new List<int>();
+            for (int idx = 0; idx < this.ScheduleLength; idx++)
+            {
+                range.Add(idx);
+            }
+
+            foreach (int point in this.Shuffle(range).Take(this.MaxPrioritySwitchPoints))
+            {
+                this.PriorityChangePoints.Add(point);
+            }
 
             return true;
+        }
+
+        /// <summary>
+        /// Shuffles the specified list using the Fisher-Yates algorithm.
+        /// </summary>
+        private IList<int> Shuffle(IList<int> list)
+        {
+            var result = new List<int>(list);
+            for (int idx = result.Count - 1; idx >= 1; idx--)
+            {
+                int point = this.RandomNumberGenerator.Next(this.ScheduleLength);
+                int temp = result[idx];
+                result[idx] = result[point];
+                result[point] = temp;
+            }
+
+            return result;
         }
 
         /// <summary>
@@ -236,9 +328,11 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
         /// </summary>
         public void Reset()
         {
+            this.ScheduleLength = 0;
             this.ScheduledSteps = 0;
             this.LastParticipatedMachineIds.Clear();
             this.PrioritizedMachineIds.Clear();
+            this.PriorityChangePoints.Clear();
         }
 
         /// <summary>

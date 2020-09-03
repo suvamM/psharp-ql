@@ -88,20 +88,24 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
 
             foreach (var op in enabledOperations)
             {
-                MachineOperation mo = (MachineOperation)op;
-                if (mo.Machine is Machine)
+                if (op is MachineOperation)
                 {
-                    Machine machine = (Machine)mo.Machine;
-                    // Console.WriteLine("Machine Name: {0}, Inbox Size: {1}, OperationId: {2}.", machine.Id, machine.GetInboxSize(), op.GetHashCode());
-                    if (highestInboxSize == machine.GetInboxSize())
+                    MachineOperation mo = op as MachineOperation;
+                    if (mo.Machine is Machine)
                     {
-                        setOfOperations.AddLast(op);
-                    }
-                    else if (highestInboxSize < machine.GetInboxSize())
-                    {
-                        highestInboxSize = machine.GetInboxSize();
-                        setOfOperations.Clear();
-                        setOfOperations.AddLast(op);
+                        Machine machine = mo.Machine as Machine;
+
+                        // Console.WriteLine("Machine Name: {0}, GetInboxSize(): {1}, OperationId: {2}, OprInboxSize: {3}.", machine.Id, machine.GetInboxSize(), op.GetHashCode(), mo.Inbox.Size);
+                        if (highestInboxSize == machine.GetInboxSize())
+                        {
+                            setOfOperations.AddLast(op);
+                        }
+                        else if (highestInboxSize < machine.GetInboxSize())
+                        {
+                            highestInboxSize = machine.GetInboxSize();
+                            setOfOperations.Clear();
+                            setOfOperations.AddLast(op);
+                        }
                     }
                 }
             }
