@@ -357,7 +357,7 @@ namespace Microsoft.PSharp.TestingServices
             }
             else if (this.Configuration.SchedulingStrategy == SchedulingStrategy.RunToCompletionPCT)
             {
-                this.Strategy = new RunToCompletionPCTStrategy(this.Configuration.MaxUnfairSchedulingSteps, this.Configuration.StateInfoCSV,
+                this.Strategy = new RunToCompletionPCTStrategy(this.Configuration.MaxUnfairSchedulingSteps, this.Configuration.PrioritySwitchBound, this.Configuration.StateInfoCSV,
                    this.RandomNumberGenerator);
             }
             else if (this.Configuration.SchedulingStrategy == SchedulingStrategy.Portfolio)
