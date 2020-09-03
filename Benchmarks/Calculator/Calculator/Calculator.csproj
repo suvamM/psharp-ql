@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <Description>Benchmarks to be used for RL evaluation.</Description>
+    <AssemblyName>Benchmarks.Calculator</AssemblyName>
+    <RootNamespace>Benchmarks.Calculator</RootNamespace>
+    <TargetFrameworks>netcoreapp3.1</TargetFrameworks>
+    <RestoreSources>$(RestoreSources);../../bin/nuget</RestoreSources>
+    <OutputPath>..\..\bin\</OutputPath>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Microsoft.PSharp">
+      <HintPath>..\..\bin\netcoreapp3.1\Microsoft.PSharp.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+</Project>

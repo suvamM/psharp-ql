@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 
@@ -135,6 +136,7 @@ namespace EvaluationDriver
                 {
                     explorationTimes.Add((double)timer.ElapsedMilliseconds / (double)1000);
                     timer.Reset();
+                    iterations.Add(configuration.NumIterations);
                     continue;
                 }
                 else
