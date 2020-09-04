@@ -168,12 +168,14 @@ namespace Calc
             { 
                 int hash = 37;
                 hash = (hash * 397) + this.Value;
-                //hash = (hash * 397) + this.Noise;
+                // Uncomment the following to add noise to the hash
+                // hash = (hash * 397) + Noise;
                 return hash;
             }
         }
 
         private int Value = 0;
+        private static int Noise = 0;
         private int MaxValue = 5000;
         private int MinValue = -5000;
         public static Dictionary<int, int> ValuesCount = new Dictionary<int, int>();
@@ -215,6 +217,7 @@ namespace Calc
 
         private void HandleMsg()
         {
+            Noise++;
             switch ((ReceivedEvent as eOp).op)
             {
                 case CalcOp.Add:
@@ -244,8 +247,8 @@ namespace Calc
             }
 
             // Hard reset the counter to stay in the range [-5000, 5000]
-            // Value = Value > MaxValue ? 0 : Value;
-            // Value = Value < MinValue ? 0 : Value;
+            Value = Value > MaxValue ? 0 : Value;
+            Value = Value < MinValue ? 0 : Value;
 
             if (!ValuesCount.ContainsKey(Value))
             {
