@@ -269,9 +269,32 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
         private int ChooseQValueIndexFromDistribution(List<double> qValues)
         {
             double sum = 0;
+            double scaledAverageLowerThreshold = -40;
+
+            // SCALING HACK ----------
+            double temperature = 1.0;
+            double average = qValues.Average();
+            if (average < scaledAverageLowerThreshold)
+            {
+                // The average is too low, scale the average up.
+                temperature = 10;
+                int exp = 1;
+                while (average < scaledAverageLowerThreshold)
+                {
+                    average /= temperature;
+                    exp++;
+                }
+
+                temperature = Math.Pow(temperature, exp);
+            }
+
+            // Uncomment the following to have the same effect as no scaling
+            temperature = 1.0;
+            // END SCALING HACK ---------
+
             for (int i = 0; i < qValues.Count; i++)
             {
-                qValues[i] = Math.Exp(qValues[i]);
+                qValues[i] = Math.Exp(qValues[i] / temperature);
                 sum += qValues[i];
             }
 
