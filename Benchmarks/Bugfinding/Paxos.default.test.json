@@ -8,6 +8,6 @@
   "abstractionLevel" : "default",
   "strategies": [
     "LargestInbox",
-    "RunToCompletionPCT"
+    "RunToCompletionPCT",  "BasicQL", "QL", "Random", "Greedy", "PCT-3", "PCT-10", "PCT-30", "IDB"
   ]
 }
