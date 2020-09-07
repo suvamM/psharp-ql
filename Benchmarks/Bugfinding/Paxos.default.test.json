@@ -7,7 +7,7 @@
   "maxSteps" : 1000,
   "abstractionLevel" : "default",
   "strategies": [
-    "LargestInbox",
-    "RunToCompletionPCT"
+   "LargestInbox",
+    "RunToCompletionPCT",  "QL"
   ]
 }
