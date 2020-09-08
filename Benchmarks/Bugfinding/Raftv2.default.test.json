@@ -8,6 +8,7 @@
   "abstractionLevel" : "default",
   "strategies": [
    "LargestInbox",
-    "RunToCompletionPCT",  "QL"
+   "RunToCompletionPCT-3",
+    "RunToCompletionPCT-10",  "RunToCompletionPCT-30",  "QL"
   ]
 }

@@ -17,7 +17,9 @@ namespace EvaluationDriver
 
         private static readonly Dictionary<string, string> SchedulerTypes = new Dictionary<string, string>
         {
-            { "RunToCompletionPCT", "rtc-pct" },
+            { "RunToCompletionPCT-3", "rtcpct:3" },
+            { "RunToCompletionPCT-10", "rtcpct:10" },
+            { "RunToCompletionPCT-30", "rtcpct:30" },
             { "LargestInbox", "largest-inbox" },
             { "QL", "rl" },
             { "QL-NDN", "no-random-rl" },

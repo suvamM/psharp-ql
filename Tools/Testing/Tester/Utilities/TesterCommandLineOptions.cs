@@ -77,9 +77,18 @@ namespace Microsoft.PSharp.Utilities
                 {
                     this.Configuration.SchedulingStrategy = SchedulingStrategy.LargestInboxFirst;
                 }
-                else if (IsMatch(scheduler, @"^rtc-pct$"))
+                else if (IsMatch(scheduler, @"^rtcpct"))
                 {
+                    int i = 0;
+                    if (IsMatch(scheduler, @"^rtcpct$") ||
+                        (!int.TryParse(scheduler.Substring(7), out i) && i >= 0))
+                    {
+                        Error.ReportAndExit("Please give a valid number of priority " +
+                            "switch bound '-sch:rtcpct:[bound]', where [bound] >= 0.");
+                    }
+
                     this.Configuration.SchedulingStrategy = SchedulingStrategy.RunToCompletionPCT;
+                    this.Configuration.PrioritySwitchBound = i;
                 }
                 else if (IsMatch(scheduler, @"^pct"))
                 {
