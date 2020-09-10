@@ -77,19 +77,6 @@ namespace Microsoft.PSharp.Utilities
                 {
                     this.Configuration.SchedulingStrategy = SchedulingStrategy.LargestInboxFirst;
                 }
-                else if (IsMatch(scheduler, @"^prtc"))
-                {
-                    int i = 0;
-                    if (IsMatch(scheduler, @"^prtc$") ||
-                        (!int.TryParse(scheduler.Substring(5), out i) && i >= 0))
-                    {
-                        Error.ReportAndExit("Please give a valid number of priority " +
-                            "switch bound '-sch:prtc:[bound]', where [bound] >= 0.");
-                    }
-
-                    this.Configuration.SchedulingStrategy = SchedulingStrategy.RunToCompletionPCT;
-                    this.Configuration.PrioritySwitchBound = i;
-                }
                 else if (IsMatch(scheduler, @"^prtcd"))
                 {
                     int i = 0;
@@ -101,6 +88,19 @@ namespace Microsoft.PSharp.Utilities
                     }
 
                     this.Configuration.SchedulingStrategy = SchedulingStrategy.RunToCompletionUntilDisabledPCT;
+                    this.Configuration.PrioritySwitchBound = i;
+                }
+                else if (IsMatch(scheduler, @"^prtc"))
+                {
+                    int i = 0;
+                    if (IsMatch(scheduler, @"^prtc$") ||
+                        (!int.TryParse(scheduler.Substring(5), out i) && i >= 0))
+                    {
+                        Error.ReportAndExit("Please give a valid number of priority " +
+                            "switch bound '-sch:prtc:[bound]', where [bound] >= 0.");
+                    }
+
+                    this.Configuration.SchedulingStrategy = SchedulingStrategy.RunToCompletionPCT;
                     this.Configuration.PrioritySwitchBound = i;
                 }
                 else if (IsMatch(scheduler, @"^pct"))
