@@ -403,9 +403,7 @@ namespace Microsoft.PSharp.TestingServices.Runtime
                 mid.Value, type.FullName);
             this.CreatedMachineIds.Add(mid);
 
-            var t1 = new MachineOperation(machine);
-            t1.Inbox = eventQueue;
-            this.MachineOperations.GetOrAdd(mid.Value, t1);
+            this.MachineOperations.GetOrAdd(mid.Value, new MachineOperation(machine));
 
             this.LogWriter.OnCreateMachine(mid, creator?.Id);
 
