@@ -90,6 +90,19 @@ namespace Microsoft.PSharp.Utilities
                     this.Configuration.SchedulingStrategy = SchedulingStrategy.RunToCompletionPCT;
                     this.Configuration.PrioritySwitchBound = i;
                 }
+                else if (IsMatch(scheduler, @"^rtcextn"))
+                {
+                    int i = 0;
+                    if (IsMatch(scheduler, @"^rtcextn$") ||
+                        (!int.TryParse(scheduler.Substring(8), out i) && i >= 0))
+                    {
+                        Error.ReportAndExit("Please give a valid number of priority " +
+                            "switch bound '-sch:rtcextn:[bound]', where [bound] >= 0.");
+                    }
+
+                    this.Configuration.SchedulingStrategy = SchedulingStrategy.RunToCompletionPCTExtn;
+                    this.Configuration.PrioritySwitchBound = i;
+                }
                 else if (IsMatch(scheduler, @"^pct"))
                 {
                     int i = 0;
@@ -426,6 +439,7 @@ namespace Microsoft.PSharp.Utilities
                 this.Configuration.SchedulingStrategy != SchedulingStrategy.FairGreedyRandom &&
                 this.Configuration.SchedulingStrategy != SchedulingStrategy.LargestInboxFirst &&
                 this.Configuration.SchedulingStrategy != SchedulingStrategy.RunToCompletionPCT &&
+                this.Configuration.SchedulingStrategy != SchedulingStrategy.RunToCompletionPCTExtn &&
                 this.Configuration.SchedulingStrategy != SchedulingStrategy.PCT &&
                 this.Configuration.SchedulingStrategy != SchedulingStrategy.FairPCT &&
                 this.Configuration.SchedulingStrategy != SchedulingStrategy.DFS &&
