@@ -14,9 +14,9 @@ using Microsoft.PSharp.IO;
 namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
 {
     /// <summary>
-    /// RunToCompletionUntilDisabledPCTStrategy.
+    /// ProbabilisticRTCStrategy.
     /// </summary>
-    public sealed class RunToCompletionUntilDisabledPCTStrategy : ISchedulingStrategy
+    public sealed class ProbabilisticRTCStrategy : ISchedulingStrategy
     {
         /// <summary>
         /// Random number generator.
@@ -76,10 +76,10 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
         private readonly SortedSet<int> PriorityChangePoints;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="RunToCompletionUntilDisabledPCTStrategy"/> class.
+        /// Initializes a new instance of the <see cref="ProbabilisticRTCStrategy"/> class.
         /// It uses the specified random number generator.
         /// </summary>
-        public RunToCompletionUntilDisabledPCTStrategy(int maxSteps, int maxPrioritySwitchPoints, string stateInfoCSV, IRandomNumberGenerator random)
+        public ProbabilisticRTCStrategy(int maxSteps, int maxPrioritySwitchPoints, string stateInfoCSV, IRandomNumberGenerator random)
         {
             this.RandomNumberGenerator = random;
             this.MaxScheduledSteps = maxSteps;
@@ -105,7 +105,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
                 return false;
             }
 
-            Console.WriteLine("---------------- Start (GetNext() decision) of Log print----------------");
+            // Console.WriteLine("---------------- Start (GetNext() decision) of Log print----------------");
 
             HashSet<ulong> machinesParInCurrentDecision = new HashSet<ulong>();
             HashSet<ulong> updateMachinePrioritySet = new HashSet<ulong>();
@@ -124,7 +124,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
                         if (!this.PrioritizedMachineIds.Contains(mo.Machine.Id.Value))
                         {
                             updateMachinePrioritySet.Add(mo.Machine.Id.Value);
-                            this.PrioritizedMachineIds.AddLast(mo.Machine.Id.Value);
                         }
                         else if (!this.LastParticipatedMachineIds.Contains(mo.Machine.Id.Value))
                         {
@@ -137,28 +136,20 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
             }
 
             var size = updateMachinePrioritySet.Count;
-
-            if (current is MachineOperation)
+            for (int i = 0; i < size; i++)
             {
-                MachineOperation mo = current as MachineOperation;
-                if (!(mo.Machine is Machine) || ((mo.Machine is Machine) && !machinesParInCurrentDecision.Contains(mo.Machine.Id.Value)))
+                int randomIndex = this.RandomNumberGenerator.Next(updateMachinePrioritySet.Count);
+                var machineId = updateMachinePrioritySet.ElementAt<ulong>(randomIndex);
+                updateMachinePrioritySet.Remove(machineId);
+                if (this.PrioritizedMachineIds.Contains(machineId))
                 {
-                    for (int i = 0; i < size; i++)
-                    {
-                        int randomIndex = this.RandomNumberGenerator.Next(updateMachinePrioritySet.Count);
-                        var machineId = updateMachinePrioritySet.ElementAt<ulong>(randomIndex);
-                        updateMachinePrioritySet.Remove(machineId);
-                        if (this.PrioritizedMachineIds.Contains(machineId))
-                        {
-                            this.PrioritizedMachineIds.Remove(machineId);
-                        }
-
-                        this.PrioritizedMachineIds.AddFirst(machineId);
-                    }
+                    this.PrioritizedMachineIds.Remove(machineId);
                 }
+
+                this.PrioritizedMachineIds.AddFirst(machineId);
             }
 
-            Console.Write("PrioritizedMachineIds: ");
+            /* Console.Write("PrioritizedMachineIds: ");
             foreach (var machineId in this.PrioritizedMachineIds)
             {
                 Console.Write("{0}-", machineId);
@@ -177,12 +168,11 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
                 }
             }
 
-            Console.WriteLine(" ");
+            Console.WriteLine(" "); */
 
             if (this.PriorityChangePoints.Contains(this.ScheduledSteps))
             {
-                MachineOperation mo = current as MachineOperation;
-                if (machinesParInCurrentDecision.Count == 1 || ((mo.Machine is Machine) && !machinesParInCurrentDecision.Contains(mo.Machine.Id.Value)))
+                if (machinesParInCurrentDecision.Count == 1 || size > 0)
                 {
                     this.MovePriorityChangePointForward();
                 }
@@ -226,8 +216,8 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
             }
 
             this.LastParticipatedMachineIds = machinesParInCurrentDecision;
-            Console.WriteLine("Chosen Operation: {0}", next.GetHashCode());
-            Console.WriteLine("---------------- End (GetNext() decision) of Debug print----------------");
+            // Console.WriteLine("Chosen Operation: {0}", next.GetHashCode());
+            // Console.WriteLine("---------------- End (GetNext() decision) of Debug print----------------");
             this.ScheduledSteps++;
             return true;
         }
@@ -372,6 +362,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
         /// <summary>
         /// Returns a textual description of the scheduling strategy.
         /// </summary>
-        public string GetDescription() => "RunToCompletionUntilDisabledPCTStrategy";
+        public string GetDescription() => "ProbabilisticRTCStrategy";
     }
 }

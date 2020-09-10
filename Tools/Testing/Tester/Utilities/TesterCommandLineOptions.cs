@@ -87,7 +87,7 @@ namespace Microsoft.PSharp.Utilities
                             "switch bound '-sch:prtcd:[bound]', where [bound] >= 0.");
                     }
 
-                    this.Configuration.SchedulingStrategy = SchedulingStrategy.RunToCompletionUntilDisabledPCT;
+                    this.Configuration.SchedulingStrategy = SchedulingStrategy.PRTCUntilDisabled;
                     this.Configuration.PrioritySwitchBound = i;
                 }
                 else if (IsMatch(scheduler, @"^prtc"))
@@ -100,7 +100,7 @@ namespace Microsoft.PSharp.Utilities
                             "switch bound '-sch:prtc:[bound]', where [bound] >= 0.");
                     }
 
-                    this.Configuration.SchedulingStrategy = SchedulingStrategy.RunToCompletionPCT;
+                    this.Configuration.SchedulingStrategy = SchedulingStrategy.ProbabilisticRTC;
                     this.Configuration.PrioritySwitchBound = i;
                 }
                 else if (IsMatch(scheduler, @"^pct"))
@@ -438,8 +438,8 @@ namespace Microsoft.PSharp.Utilities
                 this.Configuration.SchedulingStrategy != SchedulingStrategy.GreedyRandom &&
                 this.Configuration.SchedulingStrategy != SchedulingStrategy.FairGreedyRandom &&
                 this.Configuration.SchedulingStrategy != SchedulingStrategy.LargestInboxFirst &&
-                this.Configuration.SchedulingStrategy != SchedulingStrategy.RunToCompletionPCT &&
-                this.Configuration.SchedulingStrategy != SchedulingStrategy.RunToCompletionUntilDisabledPCT &&
+                this.Configuration.SchedulingStrategy != SchedulingStrategy.ProbabilisticRTC &&
+                this.Configuration.SchedulingStrategy != SchedulingStrategy.PRTCUntilDisabled &&
                 this.Configuration.SchedulingStrategy != SchedulingStrategy.PCT &&
                 this.Configuration.SchedulingStrategy != SchedulingStrategy.FairPCT &&
                 this.Configuration.SchedulingStrategy != SchedulingStrategy.DFS &&
