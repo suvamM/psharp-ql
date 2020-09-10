@@ -8,7 +8,7 @@ from time import gmtime, strftime
 
 def aggregateResults () :
     results = []
-    results.append(['Benchmark', 'LargestInbox', 'RTC-3', 'RTC-10', 'RTC-30', 'QL'])
+    results.append(['Benchmark', 'LargestInbox', 'RTC-3', 'RTC-10', 'RTC-30', 'RTC(E)-3', 'RTC(E)-10', 'RTC(E)-30', 'QL'])
 
     # Get a list of all the created directories
     directories = [x[0] for x in os.walk("./Bugfinding/out")]
