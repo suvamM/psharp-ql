@@ -360,7 +360,7 @@ namespace Microsoft.PSharp.TestingServices
                 this.Strategy = new RunToCompletionPCTStrategy(this.Configuration.MaxUnfairSchedulingSteps, this.Configuration.PrioritySwitchBound, this.Configuration.StateInfoCSV,
                    this.RandomNumberGenerator);
             }
-            else if (this.Configuration.SchedulingStrategy == SchedulingStrategy.RunToCompletionPCTExtn)
+            else if (this.Configuration.SchedulingStrategy == SchedulingStrategy.RunToCompletionUntilDisabledPCT)
             {
                 this.Strategy = new RunToCompletionUntilDisabledPCTStrategy(this.Configuration.MaxUnfairSchedulingSteps, this.Configuration.PrioritySwitchBound, this.Configuration.StateInfoCSV,
                    this.RandomNumberGenerator);
@@ -774,7 +774,7 @@ namespace Microsoft.PSharp.TestingServices
                this.Configuration.SchedulingStrategy == SchedulingStrategy.FairGreedyRandom ||
                this.Configuration.SchedulingStrategy == SchedulingStrategy.LargestInboxFirst ||
                this.Configuration.SchedulingStrategy == SchedulingStrategy.RunToCompletionPCT ||
-               this.Configuration.SchedulingStrategy == SchedulingStrategy.RunToCompletionPCTExtn ||
+               this.Configuration.SchedulingStrategy == SchedulingStrategy.RunToCompletionUntilDisabledPCT ||
                this.Configuration.SchedulingStrategy == SchedulingStrategy.PCT ||
                this.Configuration.SchedulingStrategy == SchedulingStrategy.FairPCT ||
                this.Configuration.SchedulingStrategy == SchedulingStrategy.DelayBounding ||

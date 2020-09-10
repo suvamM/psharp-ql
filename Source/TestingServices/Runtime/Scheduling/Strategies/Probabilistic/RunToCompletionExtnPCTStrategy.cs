@@ -14,9 +14,9 @@ using Microsoft.PSharp.IO;
 namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
 {
     /// <summary>
-    /// RunToCompletionExtnPCTStrategy.
+    /// RunToCompletionUntilDisabledPCTStrategy.
     /// </summary>
-    public sealed class RunToCompletionExtnPCTStrategy : ISchedulingStrategy
+    public sealed class RunToCompletionUntilDisabledPCTStrategy : ISchedulingStrategy
     {
         /// <summary>
         /// Random number generator.
@@ -76,10 +76,10 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
         private readonly SortedSet<int> PriorityChangePoints;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="RunToCompletionExtnPCTStrategy"/> class.
+        /// Initializes a new instance of the <see cref="RunToCompletionUntilDisabledPCTStrategy"/> class.
         /// It uses the specified random number generator.
         /// </summary>
-        public RunToCompletionExtnPCTStrategy(int maxSteps, int maxPrioritySwitchPoints, string stateInfoCSV, IRandomNumberGenerator random)
+        public RunToCompletionUntilDisabledPCTStrategy(int maxSteps, int maxPrioritySwitchPoints, string stateInfoCSV, IRandomNumberGenerator random)
         {
             this.RandomNumberGenerator = random;
             this.MaxScheduledSteps = maxSteps;
@@ -372,6 +372,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
         /// <summary>
         /// Returns a textual description of the scheduling strategy.
         /// </summary>
-        public string GetDescription() => "RunToCompletionExtnPCTStrategy";
+        public string GetDescription() => "RunToCompletionUntilDisabledPCTStrategy";
     }
 }

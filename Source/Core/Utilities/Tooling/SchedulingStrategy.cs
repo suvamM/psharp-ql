@@ -131,8 +131,8 @@ namespace Microsoft.PSharp.Utilities
         /// <summary>
         /// LargestInboxFirst scheduling.
         /// </summary>
-        [EnumMember(Value = "RunToCompletionPCTExtn")]
-        RunToCompletionPCTExtn,
+        [EnumMember(Value = "RunToCompletionUntilDisabledPCT")]
+        RunToCompletionUntilDisabledPCT,
 
         /// <summary>
         /// Q learning scheduling.

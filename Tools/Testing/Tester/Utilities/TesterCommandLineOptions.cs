@@ -100,7 +100,7 @@ namespace Microsoft.PSharp.Utilities
                             "switch bound '-sch:prtcd:[bound]', where [bound] >= 0.");
                     }
 
-                    this.Configuration.SchedulingStrategy = SchedulingStrategy.RunToCompletionPCTExtn;
+                    this.Configuration.SchedulingStrategy = SchedulingStrategy.RunToCompletionUntilDisabledPCT;
                     this.Configuration.PrioritySwitchBound = i;
                 }
                 else if (IsMatch(scheduler, @"^pct"))
@@ -439,7 +439,7 @@ namespace Microsoft.PSharp.Utilities
                 this.Configuration.SchedulingStrategy != SchedulingStrategy.FairGreedyRandom &&
                 this.Configuration.SchedulingStrategy != SchedulingStrategy.LargestInboxFirst &&
                 this.Configuration.SchedulingStrategy != SchedulingStrategy.RunToCompletionPCT &&
-                this.Configuration.SchedulingStrategy != SchedulingStrategy.RunToCompletionPCTExtn &&
+                this.Configuration.SchedulingStrategy != SchedulingStrategy.RunToCompletionUntilDisabledPCT &&
                 this.Configuration.SchedulingStrategy != SchedulingStrategy.PCT &&
                 this.Configuration.SchedulingStrategy != SchedulingStrategy.FairPCT &&
                 this.Configuration.SchedulingStrategy != SchedulingStrategy.DFS &&
