@@ -8,8 +8,8 @@
   "abstractionLevel" : "default",
   "strategies": [
    "LargestInbox",
-   "RunToCompletionPCT-3", "RunToCompletionPCT-10",  "RunToCompletionPCT-30",
-   "RTCExtn-3", "RTCExtn-10", "RTCExtn-30",
+   "PRTC-3", "PRTC-10",  "PRTC-30",
+   "PRTCD-3", "PRTCD-10", "PRTCD-30",
    "QL"
   ]
 }

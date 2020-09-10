@@ -402,7 +402,10 @@ namespace Microsoft.PSharp.TestingServices.Runtime
                 "Machine id '{0}' of a previously halted machine cannot be reused to create a new machine of type '{1}'",
                 mid.Value, type.FullName);
             this.CreatedMachineIds.Add(mid);
-            this.MachineOperations.GetOrAdd(mid.Value, new MachineOperation(machine));
+
+            var t1 = new MachineOperation(machine);
+            t1.Inbox = eventQueue;
+            this.MachineOperations.GetOrAdd(mid.Value, t1);
 
             this.LogWriter.OnCreateMachine(mid, creator?.Id);
 
