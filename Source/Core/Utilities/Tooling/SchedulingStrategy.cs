@@ -125,8 +125,8 @@ namespace Microsoft.PSharp.Utilities
         /// <summary>
         /// LargestInboxFirst scheduling.
         /// </summary>
-        [EnumMember(Value = "ProbabilisticRTC")]
-        ProbabilisticRTC,
+        [EnumMember(Value = "PRTC")]
+        PRTC,
 
         /// <summary>
         /// LargestInboxFirst scheduling.

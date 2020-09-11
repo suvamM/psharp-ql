@@ -14,9 +14,9 @@ using Microsoft.PSharp.IO;
 namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
 {
     /// <summary>
-    /// ProbabilisticRTCStrategy.
+    /// PRTCStrategy.
     /// </summary>
-    public sealed class ProbabilisticRTCStrategy : ISchedulingStrategy
+    public sealed class PRTCStrategy : ISchedulingStrategy
     {
         /// <summary>
         /// Random number generator.
@@ -76,10 +76,10 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
         private readonly SortedSet<int> PriorityChangePoints;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ProbabilisticRTCStrategy"/> class.
+        /// Initializes a new instance of the <see cref="PRTCStrategy"/> class.
         /// It uses the specified random number generator.
         /// </summary>
-        public ProbabilisticRTCStrategy(int maxSteps, int maxPrioritySwitchPoints, string stateInfoCSV, IRandomNumberGenerator random)
+        public PRTCStrategy(int maxSteps, int maxPrioritySwitchPoints, string stateInfoCSV, IRandomNumberGenerator random)
         {
             this.RandomNumberGenerator = random;
             this.MaxScheduledSteps = maxSteps;
@@ -362,6 +362,6 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
         /// <summary>
         /// Returns a textual description of the scheduling strategy.
         /// </summary>
-        public string GetDescription() => "ProbabilisticRTCStrategy";
+        public string GetDescription() => "PRTCStrategy";
     }
 }

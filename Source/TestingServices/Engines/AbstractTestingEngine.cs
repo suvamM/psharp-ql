@@ -355,9 +355,9 @@ namespace Microsoft.PSharp.TestingServices
                 this.Strategy = new LargestInboxFirstStrategy(this.Configuration.MaxUnfairSchedulingSteps, this.Configuration.StateInfoCSV,
                    this.RandomNumberGenerator);
             }
-            else if (this.Configuration.SchedulingStrategy == SchedulingStrategy.ProbabilisticRTC)
+            else if (this.Configuration.SchedulingStrategy == SchedulingStrategy.PRTC)
             {
-                this.Strategy = new ProbabilisticRTCStrategy(this.Configuration.MaxUnfairSchedulingSteps, this.Configuration.PrioritySwitchBound, this.Configuration.StateInfoCSV,
+                this.Strategy = new PRTCStrategy(this.Configuration.MaxUnfairSchedulingSteps, this.Configuration.PrioritySwitchBound, this.Configuration.StateInfoCSV,
                    this.RandomNumberGenerator);
             }
             else if (this.Configuration.SchedulingStrategy == SchedulingStrategy.PRTCUntilDisabled)
@@ -773,7 +773,7 @@ namespace Microsoft.PSharp.TestingServices
                this.Configuration.SchedulingStrategy == SchedulingStrategy.GreedyRandom ||
                this.Configuration.SchedulingStrategy == SchedulingStrategy.FairGreedyRandom ||
                this.Configuration.SchedulingStrategy == SchedulingStrategy.LargestInboxFirst ||
-               this.Configuration.SchedulingStrategy == SchedulingStrategy.ProbabilisticRTC ||
+               this.Configuration.SchedulingStrategy == SchedulingStrategy.PRTC ||
                this.Configuration.SchedulingStrategy == SchedulingStrategy.PRTCUntilDisabled ||
                this.Configuration.SchedulingStrategy == SchedulingStrategy.PCT ||
                this.Configuration.SchedulingStrategy == SchedulingStrategy.FairPCT ||
