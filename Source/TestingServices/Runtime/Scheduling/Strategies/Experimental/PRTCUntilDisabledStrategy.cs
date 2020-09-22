@@ -76,6 +76,11 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
         private readonly SortedSet<int> PriorityChangePoints;
 
         /// <summary>
+        /// Set of priority change points.
+        /// </summary>
+        private Machine CurrentMachine;
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="PRTCUntilDisabledStrategy"/> class.
         /// It uses the specified random number generator.
         /// </summary>
@@ -91,6 +96,7 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
             this.PrioritizedMachineIds = new LinkedList<ulong>();
             this.LastParticipatedMachineIds = new HashSet<ulong>();
             this.PriorityChangePoints = new SortedSet<int>();
+            this.CurrentMachine = null;
         }
 
         /// <summary>
@@ -105,10 +111,10 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
                 return false;
             }
 
-            // Console.WriteLine("---------------- Start (GetNext() decision) of Log print----------------");
+            Console.WriteLine("---------------- Start (GetNext() decision) of Log print----------------");
 
             HashSet<ulong> machinesParInCurrentDecision = new HashSet<ulong>();
-            HashSet<ulong> updateMachinePrioritySet = new HashSet<ulong>();
+            HashSet<ulong> updateLastly = new HashSet<ulong>();
 
             // this.CaptureExecutionStep(current);
             next = null;
@@ -121,33 +127,92 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
                     MachineOperation mo = op as MachineOperation;
                     if (mo.Machine is Machine)
                     {
-                        if (!this.PrioritizedMachineIds.Contains(mo.Machine.Id.Value))
-                        {
-                            updateMachinePrioritySet.Add(mo.Machine.Id.Value);
-                            this.PrioritizedMachineIds.AddLast(mo.Machine.Id.Value);
-                        }
-                        else if (!this.LastParticipatedMachineIds.Contains(mo.Machine.Id.Value))
-                        {
-                            updateMachinePrioritySet.Add(mo.Machine.Id.Value);
-                        }
-
                         machinesParInCurrentDecision.Add(mo.Machine.Id.Value);
+                        updateLastly.Add(mo.Machine.Id.Value);
                     }
                 }
             }
 
-            var size = updateMachinePrioritySet.Count;
+            bool flag = true;
 
-            if (current is MachineOperation)
+            if (this.CurrentMachine == null)
+            {
+                machinesParInCurrentDecision.ExceptWith(this.LastParticipatedMachineIds);
+                var size = machinesParInCurrentDecision.Count;
+
+                for (int i = 0; i < size; i++)
+                {
+                    int randomIndex = this.RandomNumberGenerator.Next(machinesParInCurrentDecision.Count);
+                    var machineId = machinesParInCurrentDecision.ElementAt<ulong>(randomIndex);
+                    machinesParInCurrentDecision.Remove(machineId);
+                    if (this.PrioritizedMachineIds.Contains(machineId))
+                    {
+                        this.PrioritizedMachineIds.Remove(machineId);
+                    }
+
+                    this.PrioritizedMachineIds.AddFirst(machineId);
+                }
+
+                flag = false;
+            }
+            else
+            {
+                MachineOperation mo = current as MachineOperation;
+                if (mo.Machine is Machine)
+                {
+                    if (!machinesParInCurrentDecision.Contains(mo.Machine.Id.Value))
+                    {
+                        machinesParInCurrentDecision.ExceptWith(this.LastParticipatedMachineIds);
+                        var size = machinesParInCurrentDecision.Count;
+
+                        for (int i = 0; i < size; i++)
+                        {
+                            int randomIndex = this.RandomNumberGenerator.Next(machinesParInCurrentDecision.Count);
+                            var machineId = machinesParInCurrentDecision.ElementAt<ulong>(randomIndex);
+                            machinesParInCurrentDecision.Remove(machineId);
+                            if (this.PrioritizedMachineIds.Contains(machineId))
+                            {
+                                this.PrioritizedMachineIds.Remove(machineId);
+                            }
+
+                            this.PrioritizedMachineIds.AddFirst(machineId);
+                        }
+
+                        flag = false;
+                    }
+                }
+                else
+                {
+                    machinesParInCurrentDecision.ExceptWith(this.LastParticipatedMachineIds);
+                    var size = machinesParInCurrentDecision.Count;
+
+                    for (int i = 0; i < size; i++)
+                    {
+                        int randomIndex = this.RandomNumberGenerator.Next(machinesParInCurrentDecision.Count);
+                        var machineId = machinesParInCurrentDecision.ElementAt<ulong>(randomIndex);
+                        machinesParInCurrentDecision.Remove(machineId);
+                        if (this.PrioritizedMachineIds.Contains(machineId))
+                        {
+                            this.PrioritizedMachineIds.Remove(machineId);
+                        }
+
+                        this.PrioritizedMachineIds.AddFirst(machineId);
+                    }
+
+                    flag = false;
+                }
+            }
+
+            /* if (current is MachineOperation)
             {
                 MachineOperation mo = current as MachineOperation;
                 if (!(mo.Machine is Machine) || ((mo.Machine is Machine) && !machinesParInCurrentDecision.Contains(mo.Machine.Id.Value)))
                 {
                     for (int i = 0; i < size; i++)
                     {
-                        int randomIndex = this.RandomNumberGenerator.Next(updateMachinePrioritySet.Count);
-                        var machineId = updateMachinePrioritySet.ElementAt<ulong>(randomIndex);
-                        updateMachinePrioritySet.Remove(machineId);
+                        int randomIndex = this.RandomNumberGenerator.Next(machinesParInCurrentDecision.Count);
+                        var machineId = machinesParInCurrentDecision.ElementAt<ulong>(randomIndex);
+                        machinesParInCurrentDecision.Remove(machineId);
                         if (this.PrioritizedMachineIds.Contains(machineId))
                         {
                             this.PrioritizedMachineIds.Remove(machineId);
@@ -156,9 +221,9 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
                         this.PrioritizedMachineIds.AddFirst(machineId);
                     }
                 }
-            }
+            } */
 
-            /* Console.Write("PrioritizedMachineIds: ");
+            Console.Write("PrioritizedMachineIds: ");
             foreach (var machineId in this.PrioritizedMachineIds)
             {
                 Console.Write("{0}-", machineId);
@@ -177,12 +242,11 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
                 }
             }
 
-            Console.WriteLine(" "); */
+            Console.WriteLine(" ");
 
             if (this.PriorityChangePoints.Contains(this.ScheduledSteps))
             {
-                MachineOperation mo = current as MachineOperation;
-                if (machinesParInCurrentDecision.Count == 1 || ((mo.Machine is Machine) && !machinesParInCurrentDecision.Contains(mo.Machine.Id.Value)))
+                if (machinesParInCurrentDecision.Count == 1 || flag)
                 {
                     this.MovePriorityChangePointForward();
                 }
@@ -210,6 +274,16 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
                         if ((mo.Machine is Machine) && mo.Machine.Id.Value == machineId && next == null)
                         {
                             next = op;
+                            if (this.CurrentMachine is null)
+                            {
+                                this.CurrentMachine = mo.Machine as Machine;
+                                this.LastParticipatedMachineIds = updateLastly;
+                            }
+                            else if (mo.Machine.Id.Value != this.CurrentMachine.Id.Value)
+                            {
+                                this.CurrentMachine = mo.Machine as Machine;
+                                this.LastParticipatedMachineIds = updateLastly;
+                            }
                         }
                     }
                 }
@@ -225,9 +299,8 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
                 next = enabledOperations.ElementAt(randomIndex);
             }
 
-            this.LastParticipatedMachineIds = machinesParInCurrentDecision;
-            // Console.WriteLine("Chosen Operation: {0}", next.GetHashCode());
-            // Console.WriteLine("---------------- End (GetNext() decision) of Debug print----------------");
+            Console.WriteLine("Chosen Operation: {0}", next.GetHashCode());
+            Console.WriteLine("---------------- End (GetNext() decision) of Debug print----------------");
             this.ScheduledSteps++;
             return true;
         }
@@ -282,7 +355,11 @@ namespace Microsoft.PSharp.TestingServices.Scheduling.Strategies
         /// Notifies the scheduling strategy that a bug was
         /// found in the current iteration.
         /// </summary>
-        public void NotifyBugFound() => this.IsBugFound = true;
+        public void NotifyBugFound()
+        {
+            this.IsBugFound = true;
+            Console.WriteLine("Bug found after Steps: {0}", this.ScheduledSteps);
+        }
 
         /// <summary>
         /// Prepares for the next scheduling iteration. This is invoked

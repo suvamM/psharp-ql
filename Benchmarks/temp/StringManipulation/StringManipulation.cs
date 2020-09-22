@@ -9,16 +9,16 @@ namespace StringManipulation
     {
         public static void Execute(IMachineRuntime runtime, int length)
         {
-            var C1 = runtime.RandomInteger((int)Math.Pow(2, length));
+            /* var C1 = runtime.RandomInteger((int)Math.Pow(2, length));
             var C2 = runtime.RandomInteger((int)Math.Pow(2, length));
 
             while (length > 0 && (C1 == C2))
             {
                 C2 = runtime.RandomInteger((int)Math.Pow(2, length));
-            }
+            } */
 
             runtime.RegisterMonitor(typeof(S));
-            runtime.InvokeMonitor<S>(new S.Config(C1, C2));
+            runtime.InvokeMonitor<S>(new S.Config(length));
 
             runtime.CreateMachine(typeof(Root), new Root.Config(length));
         }
@@ -87,12 +87,10 @@ namespace StringManipulation
                 this.String_Value = (this.ReceivedEvent as Config).String_Value;
                 this.Length = (this.ReceivedEvent as Config).Length;
 
-                if (this.String.Length == this.Length)
-                {
-                    // Console.WriteLine("NewMachine: {0}({1})", this.String, this.String_Value);
-                    this.Monitor<S>(new S.Msg(this.String_Value));
-                }
-                else
+                this.Monitor<S>(new S.Msg(this.String, this.String_Value));
+                // Console.WriteLine("NewMachine: {0}({1})", this.String, this.String_Value);
+
+                if (this.String.Length != this.Length)
                 {
                     var t1 = this.String + "0";
                     var t2 = (this.String_Value * 2) + 0;
@@ -109,28 +107,27 @@ namespace StringManipulation
         {
             internal class Config : Event
             {
-                public int C1;
-                public int C2;
+                public int Length;
 
-                public Config (int c1, int c2)
+                public Config (int length)
                 {
-                    this.C1 = c1;
-                    this.C2 = c2;
+                    this.Length = length;
                 }
             }
 
             internal class Msg : Event
             {
-                public int Machine_String;
+                public string Machine_String;
+                public int Machine_String_value;
 
-                public Msg (int machine_string)
+                public Msg (string machine_string, int machine_string_value)
                 {
                     this.Machine_String = machine_string;
+                    this.Machine_String_value = machine_string_value;
                 }
             }
 
-            int C1;
-            int C2;
+            int Length;
             bool flag;
 
             [Start]
@@ -141,29 +138,29 @@ namespace StringManipulation
 
             void InitOnEntry()
             {
+                this.flag = true;
             }
 
             void UpdateConstant()
-            { 
-                this.C1 = (this.ReceivedEvent as Config).C1;
-                this.C2 = (this.ReceivedEvent as Config).C2;
+            {
+                this.Length = (this.ReceivedEvent as Config).Length;
                 // Console.WriteLine("C1-{0}; C2-{1}", this.C1, this.C2);
-                this.flag = true;
             }
 
             void AssertAction()
             {
                 if (this.flag)
                 {
-                    var value = (this.ReceivedEvent as Msg).Machine_String;
-                    if (value == this.C1)
+                    var machine_string = (this.ReceivedEvent as Msg).Machine_String;
+                    var machine_string_value = (this.ReceivedEvent as Msg).Machine_String_value;
+                    if (machine_string_value == 1 && machine_string.Length == 1)
                     {
                         this.flag = false;
                     }
                     else
                     {
-                        bool f1 = !(value == this.C2);
-                        this.Assert(f1, "Constant 'C2' received before 'C1'");
+                        bool f1 = !(machine_string_value == 0 && machine_string.Length == this.Length);
+                        this.Assert(f1, "Received '0^n' received before '1'");
                     }
                 }
             }
